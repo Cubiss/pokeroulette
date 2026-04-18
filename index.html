@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poké Roulette</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --sidebar-width: 320px;
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --surface2: #0f3460;
+  --text: #e0e0e0;
+  --text-dim: #888;
+  --border: #2a2a4a;
+  --confirm: #27C76A;
+  --return: #AAAAAA;
+  --remove: #E24B4A;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  min-width: 1024px;
+}
+
+/* ── MAIN AREA ── */
+#main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── SCREENS ── */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+}
+.screen.fast-transition {
+  transition: opacity 0.25s ease;
+}
+
+/* ── ROULETTE SCREEN ── */
+#roulette-screen { gap: 0; }
+
+#wheel-container {
+  position: relative;
+  width: 520px;
+  height: 520px;
+  cursor: pointer;
+  user-select: none;
+}
+
+#wheel-svg {
+  width: 100%;
+  height: 100%;
+}
+
+#wheel-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  width: 180px;
+}
+
+#wheel-center-text .pokemon-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+#wheel-center-text .spin-prompt {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+#pointer {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 20px solid #fff;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  z-index: 10;
+}
+
+#empty-wheel-msg {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 1rem;
+  max-width: 300px;
+  line-height: 1.5;
+}
+
+/* ── TYPE BADGES ── */
+.type-badges {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.type-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* ── SILHOUETTE SCREEN ── */
+#silhouette-screen {
+  gap: 24px;
+  cursor: pointer;
+}
+
+.sprite-wrapper {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.sprite-wrapper img {
+  width: 300px;
+  height: 300px;
+  object-fit: contain;
+}
+
+.sprite-wrapper .question-mark {
+  position: absolute;
+  font-size: 6rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.15);
+  pointer-events: none;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.sprite-wrapper .spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border);
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#silhouette-hint {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+/* ── REVEAL SCREEN ── */
+#reveal-screen { gap: 20px; }
+
+#reveal-name {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #fff;
+  transition: filter 0.15s, transform 0.1s;
+}
+.action-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+.action-btn:active { transform: translateY(0); }
+.btn-confirm { background: var(--confirm); }
+.btn-return  { background: var(--return); }
+.btn-remove  { background: var(--remove); }
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#filter-bar {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+#filter-bar input[type="text"],
+#filter-bar select {
+  width: 100%;
+  padding: 5px 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+#filter-row2 {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+#filter-row2 select { flex: 1; }
+
+#filter-errors-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+#filter-clear {
+  padding: 4px 8px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#filter-clear:hover { color: var(--text); border-color: var(--text-dim); }
+
+.lists-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.list-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border);
+  min-height: 0;
+}
+.list-panel:last-child { border-bottom: none; }
+
+.list-header {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface2);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.list-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.list-count {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 0.9rem;
+  border-radius: 3px;
+}
+.edit-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.edit-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.edit-btn[title] { position: relative; }
+
+.list-body {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.list-body::-webkit-scrollbar { width: 6px; }
+.list-body::-webkit-scrollbar-track { background: transparent; }
+.list-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.list-textarea {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  border: none;
+  color: var(--text);
+  font-size: 0.8rem;
+  font-family: monospace;
+  padding: 8px;
+  resize: none;
+  outline: none;
+  line-height: 1.6;
+}
+
+/* ── LIST ENTRIES ── */
+.entry-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  cursor: default;
+}
+.entry-row:hover { background: rgba(255,255,255,0.04); }
+.entry-row.dragging { opacity: 0.4; }
+.entry-row.drag-over { border-top: 2px solid var(--confirm); }
+
+.entry-row[draggable="true"] { cursor: grab; }
+.entry-row[draggable="true"]:active { cursor: grabbing; }
+
+.entry-row.unknown { background: rgba(255, 200, 0, 0.12); }
+.entry-row.duplicate { background: rgba(226, 75, 74, 0.15); }
+
+.type-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+}
+.type-dot.split {
+  background: linear-gradient(135deg, var(--c1) 50%, var(--c2) 50%);
+}
+
+.entry-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry-error { font-size: 0.65rem; color: #ffc107; margin-left: auto; flex-shrink: 0; }
+.entry-dup-error { font-size: 0.65rem; color: var(--remove); margin-left: auto; flex-shrink: 0; }
+
+/* ── DROP ZONES ── */
+.drop-zone {
+  min-height: 8px;
+  transition: background 0.1s;
+}
+.drop-zone.drag-active { background: rgba(39, 199, 106, 0.2); min-height: 20px; }
+
+/* ── RESET BUTTON ── */
+#reset-btn {
+  margin: 8px 12px;
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid var(--remove);
+  border-radius: 4px;
+  color: var(--remove);
+  font-size: 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+#reset-btn:hover { background: rgba(226,75,74,0.1); }
+#reset-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+  .screen { transition: none !important; }
+  .action-btn { transition: none !important; }
+  * { animation-duration: 0.001ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="main">
+  <!-- Roulette Screen -->
+  <div id="roulette-screen" class="screen active">
+    <div id="wheel-container">
+      <div id="pointer"></div>
+      <svg id="wheel-svg" viewBox="-260 -260 520 520" xmlns="http://www.w3.org/2000/svg">
+        <defs id="wheel-defs"></defs>
+        <g id="wheel-group"></g>
+        <circle id="wheel-hole" cx="0" cy="0" r="94" fill="var(--bg)"/>
+      </svg>
+      <div id="wheel-center-text"></div>
+    </div>
+    <div id="empty-wheel-msg" style="display:none">
+      No Pokémon in the viable list.<br>Add some to get started.
+    </div>
+  </div>
+
+  <!-- Silhouette Screen -->
+  <div id="silhouette-screen" class="screen">
+    <div class="sprite-wrapper" id="silhouette-wrapper">
+      <div class="spinner" id="silhouette-spinner"></div>
+    </div>
+    <div id="silhouette-hint">Click or press Space to reveal</div>
+  </div>
+
+  <!-- Reveal Screen -->
+  <div id="reveal-screen" class="screen">
+    <div id="reveal-name"></div>
+    <div class="sprite-wrapper" id="reveal-wrapper">
+      <img id="reveal-img" src="" alt="">
+    </div>
+    <div id="reveal-types" class="type-badges"></div>
+    <div class="action-buttons">
+      <button class="action-btn btn-confirm" id="btn-confirm">✓ Guessed</button>
+      <button class="action-btn btn-return"  id="btn-return">↩ Return</button>
+      <button class="action-btn btn-remove"  id="btn-remove">✕ Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<aside id="sidebar">
+  <div id="filter-bar">
+    <input type="text" id="filter-name" placeholder="Filter by name…">
+    <div id="filter-row2">
+      <select id="filter-type" multiple size="1" title="Filter by type (Ctrl+click for multi)">
+        <option value="">All types</option>
+      </select>
+      <label id="filter-errors-label">
+        <input type="checkbox" id="filter-errors"> Errors only
+      </label>
+      <button id="filter-clear">Clear</button>
+    </div>
+  </div>
+
+  <div class="lists-container">
+    <div class="list-panel" id="panel-viable" data-list="viable">
+      <div class="list-header">
+        <span class="list-title">Viable</span>
+        <span class="list-count" id="count-viable">0 / 0</span>
+        <button class="edit-btn" id="edit-viable" title="Edit list">✏</button>
+      </div>
+      <div class="list-body" id="body-viable"></div>
+    </div>
+    <div class="list-panel" id="panel-guessed" data-list="guessed">
+      <div class="list-header">
+        <span class="list-title">Guessed</span>
+        <span class="list-count" id="count-guessed">0 / 0</span>
+        <button class="edit-btn" id="edit-guessed" title="Edit list">✏</button>
+      </div>
+      <div class="list-body" id="body-guessed"></div>
+    </div>
+    <div class="list-panel" id="panel-removed" data-list="removed">
+      <div class="list-header">
+        <span class="list-title">Removed</span>
+        <span class="list-count" id="count-removed">0 / 0</span>
+        <button class="edit-btn" id="edit-removed" title="Edit list">✏</button>
+      </div>
+      <div class="list-body" id="body-removed"></div>
+    </div>
+  </div>
+
+  <button id="reset-btn">↺ Reset all lists</button>
+</aside>
+
+<script>
+'use strict';
+
+// ── TYPE COLORS ──
+const TYPE_COLORS = {
+  Normal:   '#A8A878', Fire:     '#F08030', Water:    '#6890F0',
+  Electric: '#F8D030', Grass:    '#78C850', Ice:      '#98D8D8',
+  Fighting: '#C03028', Poison:   '#A040A0', Ground:   '#E0C068',
+  Flying:   '#A890F0', Psychic:  '#F85888', Bug:      '#A8B820',
+  Rock:     '#B8A038', Ghost:    '#705898', Dragon:   '#7038F8',
+  Dark:     '#705848', Steel:    '#B8B8D0', Fairy:    '#EE99AC',
+};
+
+const STORAGE_KEY = 'pokeroulette_lists';
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ── STATE ──
+let allPokemon = [];           // full list from pokemon.json
+let pokemonByName = new Map(); // normalized name -> pokemon obj
+let lists = { viable: [], guessed: [], removed: [] }; // arrays of raw strings
+let validatedEntries = { viable: [], guessed: [], removed: [] }; // [{raw, status, pokemon}]
+
+let currentScreen = 'roulette'; // 'roulette' | 'silhouette' | 'reveal'
+let selectedPokemon = null;
+let editMode = { viable: false, guessed: false, removed: false };
+
+// Wheel animation
+let wheelAngle = 0;       // current rotation in radians
+let wheelVelocity = 0;    // rad/s
+let spinState = 'idle';   // 'idle' | 'spinning' | 'settled'
+let winner = null;
+let animFrame = null;
+let lastTimestamp = null;
+let settleTimeout = null;
+
+// ── FILTER STATE ──
+let filters = { name: '', types: [], errorsOnly: false };
+
+// ── INIT ──
+async function init() {
+  try {
+    const res = await fetch('pokemon.json');
+    allPokemon = await res.json();
+  } catch (e) {
+    document.getElementById('main').innerHTML =
+      '<p style="color:#E24B4A;text-align:center">Failed to load pokemon.json.<br>Run build-pokemon-json.js first.</p>';
+    return;
+  }
+
+  // Build lookup map with normalized names
+  for (const p of allPokemon) {
+    pokemonByName.set(normalizeName(p.name), p);
+  }
+
+  // Populate type filter
+  const typeSelect = document.getElementById('filter-type');
+  for (const type of Object.keys(TYPE_COLORS)) {
+    const opt = document.createElement('option');
+    opt.value = type;
+    opt.textContent = type;
+    typeSelect.appendChild(opt);
+  }
+
+  loadLists();
+  validateAll();
+  renderSidebar();
+  buildWheel();
+  startIdleSpin();
+  bindEvents();
+}
+
+// ── PERSISTENCE ──
+function loadLists() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    try {
+      lists = JSON.parse(raw);
+      // ensure all three keys exist
+      lists.viable   = lists.viable   || [];
+      lists.guessed  = lists.guessed  || [];
+      lists.removed  = lists.removed  || [];
+      return;
+    } catch(e) {}
+  }
+  // First load: seed from pokemon.json
+  lists = {
+    viable:  allPokemon.map(p => p.name),
+    guessed: [],
+    removed: [],
+  };
+  saveLists();
+}
+
+function saveLists() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
+}
+
+// ── NAME NORMALIZATION ──
+function normalizeName(s) {
+  return s.toLowerCase()
+    .replace(/[-'.♀♂]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function matchPokemon(raw) {
+  const n = normalizeName(raw);
+  return pokemonByName.get(n) || null;
+}
+
+// ── VALIDATION ──
+function validateAll() {
+  // First pass: resolve each raw to a pokemon
+  const allResolved = {};
+  for (const listName of ['viable', 'guessed', 'removed']) {
+    allResolved[listName] = lists[listName].map(raw => ({
+      raw,
+      pokemon: matchPokemon(raw),
+    }));
+  }
+
+  // Find duplicates across all lists
+  const seenNames = new Map(); // normalized -> [{listName, idx}]
+  for (const listName of ['viable', 'guessed', 'removed']) {
+    for (let i = 0; i < allResolved[listName].length; i++) {
+      const { pokemon } = allResolved[listName][i];
+      if (!pokemon) continue;
+      const key = pokemon.id;
+      if (!seenNames.has(key)) seenNames.set(key, []);
+      seenNames.get(key).push({ listName, idx: i });
+    }
+  }
+
+  const duplicateKeys = new Set();
+  for (const [key, locs] of seenNames) {
+    if (locs.length > 1) duplicateKeys.add(key);
+  }
+
+  // Second pass: assign status
+  for (const listName of ['viable', 'guessed', 'removed']) {
+    validatedEntries[listName] = allResolved[listName].map(({ raw, pokemon }) => {
+      let status;
+      if (!pokemon) {
+        status = 'unknown';
+      } else if (duplicateKeys.has(pokemon.id)) {
+        status = 'duplicate';
+      } else {
+        status = 'valid';
+      }
+      return { raw, status, pokemon };
+    });
+    // Sort: invalid first, then valid (preserve order within each group)
+    validatedEntries[listName].sort((a, b) => {
+      const rankA = a.status === 'valid' ? 1 : 0;
+      const rankB = b.status === 'valid' ? 1 : 0;
+      return rankA - rankB;
+    });
+  }
+}
+
+function getValidViable() {
+  return validatedEntries.viable.filter(e => e.status === 'valid').map(e => e.pokemon);
+}
+
+// ── WHEEL BUILDING ──
+function buildWheel() {
+  const valid = getValidViable();
+  const group = document.getElementById('wheel-group');
+  const defs = document.getElementById('wheel-defs');
+  const centerText = document.getElementById('wheel-center-text');
+  const emptyMsg = document.getElementById('empty-wheel-msg');
+  const container = document.getElementById('wheel-container');
+
+  group.innerHTML = '';
+  defs.innerHTML = '';
+
+  if (valid.length === 0) {
+    container.style.display = 'none';
+    emptyMsg.style.display = 'block';
+    return;
+  }
+  container.style.display = 'block';
+  emptyMsg.style.display = 'none';
+
+  const R = 250;
+  const anglePerSlice = (2 * Math.PI) / valid.length;
+
+  // Create stripe patterns for dual-type pokemon
+  const patternCache = new Map();
+
+  for (let i = 0; i < valid.length; i++) {
+    const p = valid[i];
+    const startAngle = i * anglePerSlice - Math.PI / 2;
+    const endAngle = startAngle + anglePerSlice;
+
+    const c1 = TYPE_COLORS[p.type1] || '#888';
+    const c2 = p.type2 ? (TYPE_COLORS[p.type2] || '#888') : null;
+
+    let fill;
+    if (!c2) {
+      fill = c1;
+    } else {
+      const patKey = `${c1}_${c2}`;
+      if (!patternCache.has(patKey)) {
+        const pid = `pat_${patternCache.size}`;
+        const pat = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+        pat.setAttribute('id', pid);
+        pat.setAttribute('patternUnits', 'userSpaceOnUse');
+        pat.setAttribute('width', '8');
+        pat.setAttribute('height', '8');
+        pat.setAttribute('patternTransform', 'rotate(45)');
+        pat.innerHTML = `
+          <rect width="8" height="8" fill="${c1}"/>
+          <rect width="4" height="8" fill="${c2}"/>
+        `;
+        defs.appendChild(pat);
+        patternCache.set(patKey, pid);
+      }
+      fill = `url(#${patternCache.get(patKey)})`;
+    }
+
+    const x1 = Math.cos(startAngle) * R;
+    const y1 = Math.sin(startAngle) * R;
+    const x2 = Math.cos(endAngle) * R;
+    const y2 = Math.sin(endAngle) * R;
+    const largeArc = anglePerSlice > Math.PI ? 1 : 0;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M 0 0 L ${x1} ${y1} A ${R} ${R} 0 ${largeArc} 1 ${x2} ${y2} Z`);
+    path.setAttribute('fill', fill);
+    path.setAttribute('data-index', i);
+    group.appendChild(path);
+  }
+
+  updateCenterText();
+}
+
+function updateCenterText() {
+  const centerText = document.getElementById('wheel-center-text');
+  if (spinState === 'idle') {
+    centerText.innerHTML = '<div class="spin-prompt">Click to spin</div>';
+  } else if (spinState === 'settled' && winner) {
+    let html = `<div class="pokemon-name">${winner.name}</div>`;
+    html += '<div class="type-badges">';
+    html += `<span class="type-badge" style="background:${TYPE_COLORS[winner.type1]}">${winner.type1}</span>`;
+    if (winner.type2) {
+      html += `<span class="type-badge" style="background:${TYPE_COLORS[winner.type2]}">${winner.type2}</span>`;
+    }
+    html += '</div>';
+    centerText.innerHTML = html;
+  } else {
+    centerText.innerHTML = '';
+  }
+}
+
+function applyWheelRotation() {
+  const group = document.getElementById('wheel-group');
+  const deg = (wheelAngle * 180 / Math.PI);
+  group.setAttribute('transform', `rotate(${deg})`);
+}
+
+// ── IDLE SPIN ──
+function startIdleSpin() {
+  if (REDUCED_MOTION) return;
+  if (spinState !== 'idle') return;
+  wheelVelocity = (2 * Math.PI) / 60; // 1 RPM
+  if (!animFrame) {
+    lastTimestamp = null;
+    animFrame = requestAnimationFrame(animLoop);
+  }
+}
+
+function stopAnimation() {
+  if (animFrame) {
+    cancelAnimationFrame(animFrame);
+    animFrame = null;
+  }
+}
+
+function animLoop(ts) {
+  if (!lastTimestamp) lastTimestamp = ts;
+  const dt = Math.min((ts - lastTimestamp) / 1000, 0.1);
+  lastTimestamp = ts;
+
+  if (spinState === 'idle') {
+    wheelAngle += wheelVelocity * dt;
+    applyWheelRotation();
+    animFrame = requestAnimationFrame(animLoop);
+  } else if (spinState === 'spinning') {
+    // Cubic ease-out friction
+    const friction = 0.98;
+    wheelVelocity *= Math.pow(friction, dt * 60);
+    wheelAngle += wheelVelocity * dt;
+    applyWheelRotation();
+
+    if (wheelVelocity < 0.05) {
+      // Snap to winner angle
+      snapToWinner();
+    } else {
+      animFrame = requestAnimationFrame(animLoop);
+    }
+  }
+}
+
+function snapToWinner() {
+  stopAnimation();
+  if (!winner) return;
+
+  const valid = getValidViable();
+  const idx = valid.findIndex(p => p.id === winner.id);
+  if (idx === -1) return;
+
+  const anglePerSlice = (2 * Math.PI) / valid.length;
+  // The winning segment should be at 12 o'clock (top), which is -PI/2 in svg coords.
+  // Segment i starts at: i * anglePerSlice - PI/2 (in world space before rotation)
+  // After rotation by wheelAngle: segment center is at: (i + 0.5) * anglePerSlice - PI/2 + wheelAngle
+  // We want that to equal -PI/2 (pointing up), so:
+  // wheelAngle = -i * anglePerSlice - 0.5 * anglePerSlice + n*2*PI
+  const targetAngle = -(idx + 0.5) * anglePerSlice;
+  // Find nearest multiple of 2PI
+  const currentNorm = ((wheelAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const targetNorm = ((targetAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  let diff = targetNorm - currentNorm;
+  if (diff > Math.PI) diff -= 2 * Math.PI;
+  if (diff < -Math.PI) diff += 2 * Math.PI;
+  wheelAngle += diff;
+  applyWheelRotation();
+
+  spinState = 'settled';
+  updateCenterText();
+
+  settleTimeout = setTimeout(() => {
+    showSilhouette(winner);
+  }, 1000);
+}
+
+// ── SPIN ACTIVATION ──
+function activateSpin() {
+  const valid = getValidViable();
+  if (valid.length === 0) return;
+
+  if (spinState === 'idle') {
+    // Pick winner
+    winner = valid[Math.floor(Math.random() * valid.length)];
+    spinState = 'spinning';
+    wheelVelocity = 15 + Math.random() * 5; // fast initial snap
+    updateCenterText();
+    if (!animFrame) {
+      lastTimestamp = null;
+      animFrame = requestAnimationFrame(animLoop);
+    }
+  } else if (spinState === 'spinning') {
+    // Add velocity scaling with current speed
+    const boost = 2 + wheelVelocity * 0.3;
+    wheelVelocity += boost;
+  }
+  // no-op if settled
+}
+
+// ── SCREEN TRANSITIONS ──
+function showScreen(name) {
+  const screens = document.querySelectorAll('.screen');
+  screens.forEach(s => { s.classList.remove('active'); });
+
+  const target = document.getElementById(`${name}-screen`);
+  if (name === 'reveal') {
+    target.classList.add('fast-transition');
+  } else {
+    target.classList.remove('fast-transition');
+  }
+  target.classList.add('active');
+  currentScreen = name;
+  updateEditLock();
+}
+
+function updateEditLock() {
+  const locked = currentScreen !== 'roulette';
+  const tooltip = locked ? 'Return to roulette to edit lists' : 'Edit list';
+  for (const name of ['viable', 'guessed', 'removed']) {
+    const btn = document.getElementById(`edit-${name}`);
+    btn.disabled = locked;
+    btn.title = tooltip;
+  }
+  document.getElementById('reset-btn').disabled = locked;
+}
+
+function showSilhouette(p) {
+  selectedPokemon = p;
+
+  const wrapper = document.getElementById('silhouette-wrapper');
+  wrapper.innerHTML = '<div class="spinner" id="silhouette-spinner"></div>';
+
+  // Apply type glow
+  const c1 = TYPE_COLORS[p.type1] || '#888';
+  const c2 = p.type2 ? (TYPE_COLORS[p.type2] || '#888') : null;
+  if (c2) {
+    wrapper.style.boxShadow = `12px 0 32px 8px ${c1}, -12px 0 32px 8px ${c2}`;
+  } else {
+    wrapper.style.boxShadow = `0 0 32px 8px ${c1}`;
+  }
+
+  const img = document.createElement('img');
+  img.src = p.spriteUrl;
+  img.alt = '?';
+  img.style.cssText = 'filter: brightness(0); position:absolute; top:0; left:0;';
+  img.onload = () => {
+    document.getElementById('silhouette-spinner')?.remove();
+    wrapper.appendChild(img);
+    const qm = document.createElement('div');
+    qm.className = 'question-mark';
+    qm.textContent = '?';
+    wrapper.appendChild(qm);
+  };
+  img.onerror = () => {
+    document.getElementById('silhouette-spinner')?.remove();
+    const fallback = document.createElement('div');
+    fallback.textContent = p.name;
+    fallback.style.cssText = 'font-size:1.5rem; font-weight:700;';
+    wrapper.appendChild(fallback);
+  };
+
+  showScreen('silhouette');
+}
+
+function showReveal() {
+  const p = selectedPokemon;
+  document.getElementById('reveal-name').textContent = p.name;
+
+  const img = document.getElementById('reveal-img');
+  img.src = p.spriteUrl;
+  img.alt = p.name;
+  img.style.filter = '';
+
+  const c1 = TYPE_COLORS[p.type1] || '#888';
+  const c2 = p.type2 ? (TYPE_COLORS[p.type2] || '#888') : null;
+  const revealWrapper = document.getElementById('reveal-wrapper');
+  if (c2) {
+    revealWrapper.style.boxShadow = `12px 0 32px 8px ${c1}, -12px 0 32px 8px ${c2}`;
+  } else {
+    revealWrapper.style.boxShadow = `0 0 32px 8px ${c1}`;
+  }
+
+  const typesEl = document.getElementById('reveal-types');
+  typesEl.innerHTML = '';
+  const b1 = document.createElement('span');
+  b1.className = 'type-badge';
+  b1.style.background = c1;
+  b1.textContent = p.type1;
+  typesEl.appendChild(b1);
+  if (p.type2) {
+    const b2 = document.createElement('span');
+    b2.className = 'type-badge';
+    b2.style.background = c2;
+    b2.textContent = p.type2;
+    typesEl.appendChild(b2);
+  }
+
+  showScreen('reveal');
+}
+
+function returnToRoulette() {
+  showScreen('roulette');
+  buildWheel();
+  spinState = 'idle';
+  winner = null;
+  wheelVelocity = 0;
+  updateCenterText();
+  startIdleSpin();
+}
+
+// ── LIST ACTIONS ──
+function movePokemon(p, targetList) {
+  // Remove from all lists
+  for (const ln of ['viable', 'guessed', 'removed']) {
+    lists[ln] = lists[ln].filter(raw => {
+      const matched = matchPokemon(raw);
+      return !matched || matched.id !== p.id;
+    });
+  }
+  lists[targetList].push(p.name);
+  saveLists();
+  validateAll();
+  renderSidebar();
+}
+
+// ── SIDEBAR RENDERING ──
+function renderSidebar() {
+  for (const listName of ['viable', 'guessed', 'removed']) {
+    if (editMode[listName]) continue; // don't re-render while editing
+    renderList(listName);
+  }
+}
+
+function renderList(listName) {
+  const body = document.getElementById(`body-${listName}`);
+  const entries = validatedEntries[listName];
+
+  // Apply filters (display only)
+  const visible = entries.filter(e => matchesFilter(e));
+
+  // Update count
+  document.getElementById(`count-${listName}`).textContent =
+    `${visible.length} / ${entries.length}`;
+
+  body.innerHTML = '';
+
+  for (const entry of visible) {
+    const row = document.createElement('div');
+    row.className = 'entry-row' + (entry.status !== 'valid' ? ` ${entry.status}` : '');
+
+    if (entry.status === 'valid' && currentScreen === 'roulette') {
+      row.draggable = true;
+      row.dataset.pokemonId = entry.pokemon.id;
+      row.dataset.fromList = listName;
+    }
+
+    // Type dot
+    const dot = document.createElement('div');
+    dot.className = 'type-dot';
+    if (entry.pokemon) {
+      const c1 = TYPE_COLORS[entry.pokemon.type1] || '#888';
+      if (entry.pokemon.type2) {
+        dot.classList.add('split');
+        dot.style.setProperty('--c1', c1);
+        dot.style.setProperty('--c2', TYPE_COLORS[entry.pokemon.type2] || '#888');
+      } else {
+        dot.style.background = c1;
+      }
+    } else {
+      dot.style.background = '#555';
+    }
+    row.appendChild(dot);
+
+    const name = document.createElement('div');
+    name.className = 'entry-name';
+    name.textContent = entry.pokemon ? entry.pokemon.name : entry.raw;
+    row.appendChild(name);
+
+    if (entry.status === 'unknown') {
+      const err = document.createElement('div');
+      err.className = 'entry-error';
+      err.textContent = '?';
+      err.title = `Unknown: "${entry.raw}"`;
+      row.appendChild(err);
+    } else if (entry.status === 'duplicate') {
+      const err = document.createElement('div');
+      err.className = 'entry-dup-error';
+      err.textContent = '⚠';
+      err.title = 'Duplicate across lists';
+      row.appendChild(err);
+    }
+
+    // Drag events
+    if (row.draggable) {
+      row.addEventListener('dragstart', onDragStart);
+      row.addEventListener('dragend', onDragEnd);
+    }
+
+    body.appendChild(row);
+  }
+
+  // Drop zones between entries
+  if (currentScreen === 'roulette') {
+    setupDropZones(body, listName);
+  }
+}
+
+function matchesFilter(entry) {
+  if (filters.errorsOnly && entry.status === 'valid') return false;
+
+  if (filters.name) {
+    const q = filters.name.toLowerCase();
+    const displayName = entry.pokemon ? entry.pokemon.name.toLowerCase() : '';
+    const rawName = entry.raw.toLowerCase();
+    if (!displayName.includes(q) && !rawName.includes(q)) return false;
+  }
+
+  if (filters.types.length > 0 && entry.pokemon) {
+    const types = [entry.pokemon.type1, entry.pokemon.type2].filter(Boolean);
+    if (!filters.types.some(t => types.includes(t))) return false;
+  } else if (filters.types.length > 0 && !entry.pokemon) {
+    return false;
+  }
+
+  return true;
+}
+
+// ── DRAG & DROP ──
+let dragData = null;
+
+function onDragStart(e) {
+  const row = e.currentTarget;
+  dragData = {
+    pokemonId: parseInt(row.dataset.pokemonId),
+    fromList: row.dataset.fromList,
+  };
+  row.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', row.dataset.pokemonId);
+}
+
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  dragData = null;
+  document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-active'));
+}
+
+function setupDropZones(body, listName) {
+  const rows = body.querySelectorAll('.entry-row');
+
+  // Create drop zone before each row and one at the end
+  const makeZone = (beforeRow) => {
+    const zone = document.createElement('div');
+    zone.className = 'drop-zone';
+    zone.dataset.targetList = listName;
+
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.classList.add('drag-active');
+    });
+    zone.addEventListener('dragleave', () => {
+      zone.classList.remove('drag-active');
+    });
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-active');
+      if (!dragData) return;
+      handleDrop(listName, dragData);
+    });
+
+    if (beforeRow) {
+      body.insertBefore(zone, beforeRow);
+    } else {
+      body.appendChild(zone);
+    }
+  };
+
+  // Re-insert zones between rows
+  const existingRows = [...rows];
+  existingRows.forEach(row => makeZone(row));
+  makeZone(null);
+
+  // Also make the entire body a drop target
+  body.addEventListener('dragover', (e) => e.preventDefault());
+  body.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (!dragData) return;
+    handleDrop(listName, dragData);
+  });
+}
+
+function handleDrop(targetList, data) {
+  const p = allPokemon.find(p => p.id === data.pokemonId);
+  if (!p) return;
+  if (data.fromList === targetList) {
+    // Reorder: for now just re-render (full reorder would need position tracking)
+    return;
+  }
+  movePokemon(p, targetList);
+  if (targetList !== 'viable' || data.fromList !== 'viable') {
+    // Rebuild wheel if viable list changed
+    buildWheel();
+  }
+}
+
+// ── EDIT MODE ──
+function enterEditMode(listName) {
+  if (currentScreen !== 'roulette') return;
+  editMode[listName] = true;
+
+  const body = document.getElementById(`body-${listName}`);
+  const btn = document.getElementById(`edit-${listName}`);
+  btn.textContent = '✓ Done';
+
+  const textarea = document.createElement('textarea');
+  textarea.className = 'list-textarea';
+  textarea.value = lists[listName].join('\n');
+  body.innerHTML = '';
+  body.appendChild(textarea);
+  textarea.focus();
+
+  textarea.addEventListener('blur', () => exitEditMode(listName));
+}
+
+function exitEditMode(listName) {
+  if (!editMode[listName]) return;
+  const body = document.getElementById(`body-${listName}`);
+  const textarea = body.querySelector('textarea');
+  if (textarea) {
+    const lines = textarea.value.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+    lists[listName] = lines;
+  }
+  editMode[listName] = false;
+
+  const btn = document.getElementById(`edit-${listName}`);
+  btn.textContent = '✏';
+
+  saveLists();
+  validateAll();
+  renderSidebar();
+  buildWheel();
+}
+
+// ── EVENTS ──
+function bindEvents() {
+  // Wheel click
+  document.getElementById('wheel-container').addEventListener('click', () => {
+    if (currentScreen !== 'roulette') return;
+    activateSpin();
+  });
+
+  // Silhouette click
+  document.getElementById('silhouette-screen').addEventListener('click', () => {
+    if (currentScreen !== 'silhouette') return;
+    showReveal();
+  });
+
+  // Action buttons
+  document.getElementById('btn-confirm').addEventListener('click', () => {
+    movePokemon(selectedPokemon, 'guessed');
+    returnToRoulette();
+  });
+  document.getElementById('btn-return').addEventListener('click', () => {
+    // Already in viable — just return
+    returnToRoulette();
+  });
+  document.getElementById('btn-remove').addEventListener('click', () => {
+    movePokemon(selectedPokemon, 'removed');
+    returnToRoulette();
+  });
+
+  // Space
+  document.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space') return;
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+    e.preventDefault();
+    if (currentScreen === 'roulette') {
+      activateSpin();
+    } else if (currentScreen === 'silhouette') {
+      showReveal();
+    }
+    // disabled on reveal
+  });
+
+  // Edit buttons
+  for (const listName of ['viable', 'guessed', 'removed']) {
+    document.getElementById(`edit-${listName}`).addEventListener('click', () => {
+      if (editMode[listName]) {
+        exitEditMode(listName);
+      } else {
+        // Exit any other edit modes first
+        for (const ln of ['viable', 'guessed', 'removed']) {
+          if (ln !== listName && editMode[ln]) exitEditMode(ln);
+        }
+        enterEditMode(listName);
+      }
+    });
+  }
+
+  // Filters
+  document.getElementById('filter-name').addEventListener('input', (e) => {
+    filters.name = e.target.value;
+    renderSidebar();
+  });
+
+  document.getElementById('filter-type').addEventListener('change', (e) => {
+    filters.types = [...e.target.selectedOptions].map(o => o.value).filter(v => v);
+    renderSidebar();
+  });
+
+  document.getElementById('filter-errors').addEventListener('change', (e) => {
+    filters.errorsOnly = e.target.checked;
+    renderSidebar();
+  });
+
+  document.getElementById('filter-clear').addEventListener('click', () => {
+    filters = { name: '', types: [], errorsOnly: false };
+    document.getElementById('filter-name').value = '';
+    const sel = document.getElementById('filter-type');
+    [...sel.options].forEach(o => o.selected = false);
+    document.getElementById('filter-errors').checked = false;
+    renderSidebar();
+  });
+
+  // Reset
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (currentScreen !== 'roulette') return;
+    if (!confirm('Reset all lists? This will restore all 1025 Pokémon to the Viable list and cannot be undone.')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    loadLists();
+    validateAll();
+    renderSidebar();
+    buildWheel();
+    spinState = 'idle';
+    winner = null;
+    updateCenterText();
+  });
+}
+
+init();
+</script>
+</body>
+</html>
