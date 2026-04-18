@@ -276,6 +276,12 @@ body {
 #reveal-bio .bio-label { color: var(--text-dim); }
 #reveal-bio .bio-value { font-weight: 600; text-align: right; }
 
+#reveal-dup-warning {
+  font-size: 0.75rem;
+  color: var(--remove);
+  text-align: center;
+}
+
 .dex-entry {
   font-size: clamp(0.75rem, 1.8vmin, 0.9rem);
   color: var(--text-dim);
@@ -794,6 +800,7 @@ body {
       <button class="action-btn btn-confirm" id="btn-confirm" title="Remove from roulette as guessed">✓ Guessed</button>
       <button class="action-btn btn-remove"  id="btn-remove"  title="Remove from roulette as failed">✕ Failed</button>
     </div>
+    <div id="reveal-dup-warning" style="display:none">⚠ Duplicate — resolves all copies</div>
   </div>
 </div>
 
@@ -939,6 +946,7 @@ let validatedEntries = { viable: [], guessed: [], removed: [] }; // [{raw, statu
 
 let currentScreen = 'roulette'; // 'roulette' | 'silhouette' | 'reveal'
 let selectedPokemon = null;
+let selectedPokemonIsDuplicate = false;
 let revealState = { name: false, types: false, gen: false };
 let editMode = { viable: false, guessed: false, removed: false };
 let editModeFilteredOut = { viable: [], guessed: [], removed: [] };
@@ -1581,6 +1589,7 @@ function checkAllRevealed() {
 
 function showSilhouette(p) {
   selectedPokemon = p;
+  selectedPokemonIsDuplicate = false;
 
   revealState = {
     name:   config.hints.name   === 'hidden' ? false : true,
@@ -1779,10 +1788,24 @@ function showReveal() {
   bioEl.innerHTML = '';
   document.getElementById('btn-bio').classList.remove('active');
 
+  const dupWarning = document.getElementById('reveal-dup-warning');
+  if (selectedPokemonIsDuplicate) {
+    const listNames = { viable: 'Viable', guessed: 'Guessed', removed: 'Failed' };
+    const found = Object.entries(listNames)
+      .filter(([key]) => lists[key].some(raw => matchPokemon(raw)?.id === p.id))
+      .map(([, label]) => label);
+    const last = found.pop();
+    dupWarning.textContent = '⚠ Duplicate in ' + (found.length ? found.join(', ') + ' and ' + last : last);
+    dupWarning.style.display = '';
+  } else {
+    dupWarning.style.display = 'none';
+  }
+
   showScreen('reveal');
 }
 
 function returnToRoulette() {
+  selectedPokemonIsDuplicate = false;
   document.querySelectorAll('.entry-row.active').forEach(r => r.classList.remove('active'));
   showScreen('roulette');
   buildWheel();
@@ -1854,24 +1877,29 @@ function renderList(listName) {
     const row = document.createElement('div');
     row.className = 'entry-row' + (entry.status !== 'valid' ? ` ${entry.status}` : '');
 
-    if (entry.status === 'valid') {
-      row.dataset.pokemonId = entry.pokemon.id;
-      if (currentScreen === 'roulette') {
-        row.draggable = true;
-        row.dataset.fromList = listName;
-      }
-      if (currentScreen !== 'roulette') row.style.cursor = 'pointer';
-      row.addEventListener('click', () => {
-        if (row.classList.contains('active')) {
-          row.classList.remove('active');
-          returnToRoulette();
-          return;
+    if (entry.status === 'valid' || entry.status === 'duplicate') {
+      if (entry.pokemon) row.dataset.pokemonId = entry.pokemon.id;
+      if (entry.status === 'valid') {
+        if (currentScreen === 'roulette') {
+          row.draggable = true;
+          row.dataset.fromList = listName;
         }
-        document.querySelectorAll('.entry-row.active').forEach(r => r.classList.remove('active'));
-        row.classList.add('active');
-        selectedPokemon = entry.pokemon;
-        showReveal();
-      });
+      }
+      if (entry.pokemon) {
+        if (currentScreen !== 'roulette') row.style.cursor = 'pointer';
+        row.addEventListener('click', () => {
+          if (row.classList.contains('active')) {
+            row.classList.remove('active');
+            returnToRoulette();
+            return;
+          }
+          document.querySelectorAll('.entry-row.active').forEach(r => r.classList.remove('active'));
+          row.classList.add('active');
+          selectedPokemon = entry.pokemon;
+          selectedPokemonIsDuplicate = entry.status === 'duplicate';
+          showReveal();
+        });
+      }
     }
 
     // Type dot
