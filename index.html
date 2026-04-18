@@ -282,6 +282,106 @@ body {
   text-align: center;
 }
 
+/* ── DUPLICATE RESOLVER SCREEN ── */
+#duplicate-screen {
+  gap: clamp(6px, 1.5vmin, 14px);
+  padding: 16px;
+}
+
+#dup-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+#dup-header #dup-title { flex: 1; text-align: center; }
+#btn-close-dup {
+  width: 28px; height: 28px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid var(--border); border-radius: 50%;
+  color: var(--text-dim); font-size: 0.85rem; cursor: pointer; line-height: 1;
+}
+#btn-close-dup:hover { color: var(--text); border-color: var(--text-dim); }
+
+#dup-columns {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.dup-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.dup-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.dup-select-all {
+  font-size: 0.7rem;
+  padding: 2px 7px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.dup-select-all:hover { color: var(--text); border-color: var(--text-dim); }
+
+.dup-col-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dup-item {
+  padding: 6px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s;
+}
+.dup-item.selected { border-color: var(--confirm); background: rgba(39,199,106,0.12); }
+.dup-item.dimmed { opacity: 0.3; }
+.dup-col-gap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-style: italic;
+  padding: 4px 0 8px;
+}
+.dup-group-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 6px 2px 2px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+.dup-group-label:first-child { border-top: none; margin-top: 0; }
+
 .dex-entry {
   font-size: clamp(0.75rem, 1.8vmin, 0.9rem);
   color: var(--text-dim);
@@ -800,7 +900,40 @@ body {
       <button class="action-btn btn-confirm" id="btn-confirm" title="Move to Drawn">✓ Drawn!</button>
       <button class="action-btn btn-remove"  id="btn-remove"  title="Move to The Pile">✕ To The Pile!</button>
     </div>
-    <div id="reveal-dup-warning" style="display:none">⚠ Duplicate — resolves all copies</div>
+    <div id="reveal-dup-warning" style="display:none"></div>
+  </div>
+
+  <!-- Duplicate Resolver Screen -->
+  <div id="duplicate-screen" class="screen">
+    <div id="dup-header">
+      <div style="width:28px;flex-shrink:0"></div>
+      <div id="dup-title" class="pokemon-display-name"></div>
+      <button id="btn-close-dup" title="Return to roulette">✕</button>
+    </div>
+    <div id="dup-columns">
+      <div class="dup-column" id="dup-col-viable">
+        <div class="dup-col-header">
+          <span>Roulette</span>
+          <button class="dup-select-all" data-list="viable">Select All</button>
+        </div>
+        <div class="dup-col-body" id="dup-body-viable"></div>
+      </div>
+      <div class="dup-column" id="dup-col-guessed">
+        <div class="dup-col-header">
+          <span>Drawn</span>
+          <button class="dup-select-all" data-list="guessed">Select All</button>
+        </div>
+        <div class="dup-col-body" id="dup-body-guessed"></div>
+      </div>
+      <div class="dup-column" id="dup-col-removed">
+        <div class="dup-col-header">
+          <span>The Pile</span>
+          <button class="dup-select-all" data-list="removed">Select All</button>
+        </div>
+        <div class="dup-col-body" id="dup-body-removed"></div>
+      </div>
+    </div>
+    <button id="btn-resolve" class="action-btn btn-confirm">Resolve</button>
   </div>
 </div>
 
@@ -947,6 +1080,8 @@ let validatedEntries = { viable: [], guessed: [], removed: [] }; // [{raw, statu
 let currentScreen = 'roulette'; // 'roulette' | 'silhouette' | 'reveal'
 let selectedPokemon = null;
 let selectedPokemonIsDuplicate = false;
+let duplicatePokemon = null;
+let duplicateSelected = new Set(); // keys: "listName:rawIndex"
 let revealState = { name: false, types: false, gen: false };
 let editMode = { viable: false, guessed: false, removed: false };
 let editModeFilteredOut = { viable: [], guessed: [], removed: [] };
@@ -1249,7 +1384,7 @@ function validateAll() {
 }
 
 function getValidViable() {
-  return validatedEntries.viable.filter(e => e.status === 'valid').map(e => e.pokemon);
+  return validatedEntries.viable.filter(e => e.status === 'valid' || e.status === 'duplicate').map(e => e.pokemon);
 }
 
 // ── WHEEL BUILDING ──
@@ -1804,6 +1939,111 @@ function showReveal() {
   showScreen('reveal');
 }
 
+function getAllDuplicatePokemon() {
+  const inLists = new Map(); // pokemonId -> Set of listNames
+  for (const ln of ['viable', 'guessed', 'removed']) {
+    for (const raw of lists[ln]) {
+      const p = matchPokemon(raw);
+      if (!p) continue;
+      if (!inLists.has(p.id)) inLists.set(p.id, new Set());
+      inLists.get(p.id).add(ln);
+    }
+  }
+  return [...inLists.entries()]
+    .filter(([, set]) => set.size > 1)
+    .map(([id]) => allPokemon.find(p => p.id === id))
+    .filter(Boolean);
+}
+
+function showDuplicateResolver() {
+  duplicatePokemon = null;
+  duplicateSelected = new Set();
+  const dups = getAllDuplicatePokemon();
+  document.getElementById('dup-title').textContent =
+    dups.length === 1 ? dups[0].name : `${dups.length} duplicates`;
+  renderDuplicateResolver();
+  showScreen('duplicate');
+}
+
+function renderDuplicateResolver() {
+  const dupPokemon = getAllDuplicatePokemon();
+
+  for (const ln of ['viable', 'guessed', 'removed']) {
+    const body = document.getElementById(`dup-body-${ln}`);
+    body.innerHTML = '';
+
+    for (const p of dupPokemon) {
+      const entries = lists[ln]
+        .map((raw, idx) => ({ raw, idx }))
+        .filter(({ raw }) => matchPokemon(raw)?.id === p.id);
+
+      const label = document.createElement('div');
+      label.className = 'dup-group-label';
+      label.textContent = p.name;
+      body.appendChild(label);
+
+      if (entries.length === 0) {
+        const gap = document.createElement('div');
+        gap.className = 'dup-col-gap';
+        gap.textContent = '—';
+        body.appendChild(gap);
+        continue;
+      }
+
+      // Count selected keys for this pokemon group
+      const groupKeys = entries.map(({ idx }) => `${p.id}:${ln}:${idx}`);
+      const anyInGroupSelected = groupKeys.some(k => duplicateSelected.has(k));
+
+      for (const { raw, idx } of entries) {
+        const key = `${p.id}:${ln}:${idx}`;
+        const isSelected = duplicateSelected.has(key);
+        const isDimmed = anyInGroupSelected && !isSelected;
+        const item = document.createElement('div');
+        item.className = 'dup-item' +
+          (isSelected ? ' selected' : '') +
+          (isDimmed ? ' dimmed' : '');
+        item.textContent = raw;
+        item.addEventListener('click', () => {
+          if (isSelected) {
+            duplicateSelected.delete(key);
+          } else {
+            // Deselect all keys for this pokemon, then select this one
+            for (const k of [...duplicateSelected]) {
+              if (k.startsWith(`${p.id}:`)) duplicateSelected.delete(k);
+            }
+            duplicateSelected.add(key);
+          }
+          renderDuplicateResolver();
+        });
+        body.appendChild(item);
+      }
+    }
+  }
+}
+
+function resolveDuplicate() {
+  const dupPokemon = getAllDuplicatePokemon();
+  for (const p of dupPokemon) {
+    const anySelected = [...duplicateSelected].some(k => k.startsWith(`${p.id}:`));
+    if (!anySelected) continue;
+    for (const ln of ['viable', 'guessed', 'removed']) {
+      const toKeep = new Set();
+      lists[ln].forEach((raw, idx) => {
+        if (matchPokemon(raw)?.id === p.id && duplicateSelected.has(`${p.id}:${ln}:${idx}`))
+          toKeep.add(idx);
+      });
+      lists[ln] = lists[ln].filter((raw, idx) => {
+        if (matchPokemon(raw)?.id !== p.id) return true;
+        return toKeep.has(idx);
+      });
+    }
+  }
+  saveLists();
+  validateAll();
+  renderSidebar();
+  returnToRoulette();
+}
+
 function returnToRoulette() {
   selectedPokemonIsDuplicate = false;
   document.querySelectorAll('.entry-row.active').forEach(r => r.classList.remove('active'));
@@ -1941,7 +2181,12 @@ function renderList(listName) {
       const err = document.createElement('div');
       err.className = 'entry-dup-error';
       err.textContent = '⚠';
-      err.title = 'Duplicate across lists';
+      err.title = 'Resolve duplicate';
+      err.style.cursor = 'pointer';
+      err.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDuplicateResolver();
+      });
       row.appendChild(err);
     }
 
@@ -2171,6 +2416,30 @@ function bindEvents() {
   document.getElementById('btn-remove').addEventListener('click', () => {
     movePokemon(selectedPokemon, 'removed');
     returnToRoulette();
+  });
+
+  // Duplicate resolver
+  document.getElementById('btn-close-dup').addEventListener('click', () => {
+    returnToRoulette();
+  });
+  document.getElementById('btn-resolve').addEventListener('click', () => {
+    resolveDuplicate();
+  });
+  document.querySelectorAll('.dup-select-all').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ln = btn.dataset.list;
+      for (const p of getAllDuplicatePokemon()) {
+        // Deselect all keys for this pokemon across all lists
+        for (const k of [...duplicateSelected]) {
+          if (k.startsWith(`${p.id}:`)) duplicateSelected.delete(k);
+        }
+        // Select all entries in this list for this pokemon
+        lists[ln].forEach((raw, idx) => {
+          if (matchPokemon(raw)?.id === p.id) duplicateSelected.add(`${p.id}:${ln}:${idx}`);
+        });
+      }
+      renderDuplicateResolver();
+    });
   });
 
   // Space
