@@ -380,6 +380,8 @@ body {
   color: var(--text-dim);
 }
 .hint-radio-label.selected { background: var(--surface2); border-color: var(--text-dim); color: var(--text); }
+.hint-radio-label { border-style: dashed; }
+.hint-radio-label.default { border-style: solid; }
 .hint-radio-label input { display: none; }
 
 #gen-checkboxes { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -768,14 +770,14 @@ body {
       <div class="hint-row">
         <div class="hint-row-label">Name</div>
         <div class="hint-options">
-          <label class="hint-radio-label"><input type="radio" name="hint-name" value="hidden"> Hidden</label>
+          <label class="hint-radio-label default"><input type="radio" name="hint-name" value="hidden"> Hidden</label>
           <label class="hint-radio-label"><input type="radio" name="hint-name" value="disabled"> Disabled</label>
         </div>
       </div>
       <div class="hint-row">
         <div class="hint-row-label">Sprite</div>
         <div class="hint-options">
-          <label class="hint-radio-label"><input type="radio" name="hint-sprite" value="hidden"> Hidden</label>
+          <label class="hint-radio-label default"><input type="radio" name="hint-sprite" value="hidden"> Hidden</label>
           <label class="hint-radio-label"><input type="radio" name="hint-sprite" value="visible"> Visible</label>
         </div>
       </div>
@@ -783,7 +785,7 @@ body {
         <div class="hint-row-label">Types</div>
         <div class="hint-options">
           <label class="hint-radio-label"><input type="radio" name="hint-types" value="visible"> Visible</label>
-          <label class="hint-radio-label"><input type="radio" name="hint-types" value="hidden"> Hidden</label>
+          <label class="hint-radio-label default"><input type="radio" name="hint-types" value="hidden"> Hidden</label>
           <label class="hint-radio-label"><input type="radio" name="hint-types" value="disabled"> Disabled</label>
         </div>
       </div>
@@ -791,7 +793,7 @@ body {
         <div class="hint-row-label">Generation</div>
         <div class="hint-options">
           <label class="hint-radio-label"><input type="radio" name="hint-gen" value="visible"> Visible</label>
-          <label class="hint-radio-label"><input type="radio" name="hint-gen" value="hidden"> Hidden</label>
+          <label class="hint-radio-label default"><input type="radio" name="hint-gen" value="hidden"> Hidden</label>
           <label class="hint-radio-label"><input type="radio" name="hint-gen" value="disabled"> Disabled</label>
         </div>
       </div>
