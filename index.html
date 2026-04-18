@@ -765,8 +765,8 @@ body {
       <div class="spinner" id="silhouette-spinner"></div>
     </div>
     <div class="card-meta">
-      <div id="silhouette-types" class="type-badges"></div>
       <span id="silhouette-gen" class="gen-label"></span>
+      <div id="silhouette-types" class="type-badges"></div>
     </div>
     <div id="silhouette-dex"></div>
     <div class="action-buttons">
@@ -1520,6 +1520,61 @@ function renderBio(el, data) {
   }
 }
 
+function revealNextHint() {
+  const p = selectedPokemon;
+  const order = ['gen', 'types', 'dex', 'sprite', 'name'];
+  for (const key of order) {
+    if (revealState[key]) continue; // already revealed or not a prerequisite
+    if (key === 'gen') {
+      const genEl = document.getElementById('silhouette-gen');
+      genEl.style.cssText = '';
+      genEl.textContent = `Gen ${p.gen}`;
+      revealState.gen = true;
+    } else if (key === 'types') {
+      const typesEl = document.getElementById('silhouette-types');
+      typesEl.innerHTML = '';
+      const b1 = document.createElement('span');
+      b1.className = 'type-badge';
+      b1.style.background = TYPE_COLORS[p.type1] || '#888';
+      b1.textContent = p.type1;
+      typesEl.appendChild(b1);
+      if (p.type2) {
+        const b2 = document.createElement('span');
+        b2.className = 'type-badge';
+        b2.style.background = TYPE_COLORS[p.type2] || '#888';
+        b2.textContent = p.type2;
+        typesEl.appendChild(b2);
+      }
+      revealState.types = true;
+    } else if (key === 'dex') {
+      const dexEl = document.getElementById('silhouette-dex');
+      dexEl.classList.remove('blurred');
+      dexEl.onclick = null;
+      if (!pokedexCache.has(p.id)) fetchDexEntry(p, dexEl, false);
+      else applyDexText(dexEl, p, false);
+      revealState.dex = true;
+    } else if (key === 'sprite') {
+      const wrapper = document.getElementById('silhouette-wrapper');
+      const img = wrapper.querySelector('img');
+      if (img) img.style.filter = '';
+      wrapper.querySelector('.question-mark')?.remove();
+      wrapper.style.cursor = '';
+      wrapper.onclick = null;
+      revealState.sprite = true;
+    } else if (key === 'name') {
+      const nameArea = document.getElementById('silhouette-name-area');
+      nameArea.innerHTML = '';
+      nameArea.textContent = p.name;
+      const dexEl = document.getElementById('silhouette-dex');
+      if (pokedexCache.has(p.id)) applyDexText(dexEl, p, false);
+      revealState.name = true;
+    }
+    checkAllRevealed();
+    return;
+  }
+  // All hints revealed — nothing left to do
+}
+
 function checkAllRevealed() {
   if (revealState.name && revealState.sprite && revealState.types && revealState.gen && revealState.dex) showReveal();
 }
@@ -2098,7 +2153,7 @@ function bindEvents() {
     if (currentScreen === 'roulette') {
       activateSpin();
     } else if (currentScreen === 'silhouette') {
-      document.getElementById('btn-reveal-all').click();
+      revealNextHint();
     }
     // disabled on reveal
   });
