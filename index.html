@@ -27,7 +27,7 @@ body {
   display: flex;
   height: 100vh;
   overflow: hidden;
-  min-width: 1024px;
+  min-width: 0;
 }
 
 /* ── MAIN AREA ── */
@@ -65,8 +65,8 @@ body {
 
 #wheel-container {
   position: relative;
-  width: 520px;
-  height: 520px;
+  width: min(520px, calc(100% - 40px), calc(100vh - 80px));
+  aspect-ratio: 1;
   cursor: pointer;
   user-select: none;
 }
@@ -83,7 +83,7 @@ body {
   transform: translate(-50%, -50%);
   text-align: center;
   pointer-events: none;
-  width: 180px;
+  width: 35%;
 }
 
 #wheel-center-text .pokemon-name {
@@ -121,11 +121,30 @@ body {
 }
 
 /* ── TYPE BADGES ── */
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1.5vmin, 12px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 .type-badges {
   display: flex;
   gap: 6px;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.gen-label {
+  font-size: clamp(0.7rem, 1.5vmin, 0.85rem);
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  white-space: nowrap;
+  background: var(--bg);
 }
 .type-badge {
   padding: 3px 10px;
@@ -137,15 +156,14 @@ body {
 }
 
 /* ── SILHOUETTE SCREEN ── */
-#silhouette-screen {
-  gap: 24px;
-  cursor: pointer;
-}
 
 .sprite-wrapper {
   position: relative;
-  width: 300px;
-  height: 300px;
+  flex: 1;
+  min-height: 0;
+  aspect-ratio: 1;
+  max-width: 100%;
+  width: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,14 +171,14 @@ body {
 }
 
 .sprite-wrapper img {
-  width: 300px;
-  height: 300px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
 .sprite-wrapper .question-mark {
   position: absolute;
-  font-size: 6rem;
+  font-size: clamp(2rem, 20%, 6rem);
   font-weight: 900;
   color: rgba(255,255,255,0.15);
   pointer-events: none;
@@ -178,34 +196,57 @@ body {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* hint floats inside the sprite as a subtle overlay */
 #silhouette-hint {
-  font-size: 0.85rem;
-  color: var(--text-dim);
+  position: absolute;
+  bottom: 8px;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: clamp(0.65rem, 1.5vmin, 0.85rem);
+  color: rgba(255,255,255,0.35);
+  pointer-events: none;
+}
+
+/* ghost elements occupy space without being visible */
+.ghost {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* ── REVEAL SCREEN ── */
-#reveal-screen { gap: 20px; }
+/* both screens share identical layout so the sprite occupies the same space */
+#silhouette-screen,
+#reveal-screen {
+  gap: clamp(6px, 1.5vmin, 14px);
+  padding: 16px;
+}
 
-#reveal-name {
-  font-size: 2.2rem;
+.pokemon-display-name {
+  font-size: clamp(1rem, 4vmin, 2.2rem);
   font-weight: 800;
   letter-spacing: 0.02em;
+  text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .action-buttons {
   display: flex;
-  gap: 16px;
-  margin-top: 8px;
+  gap: clamp(6px, 1.5vmin, 16px);
+  margin-top: clamp(4px, 1vmin, 8px);
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .action-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 28px;
+  gap: 6px;
+  padding: clamp(6px, 1.5vmin, 12px) clamp(12px, 3vmin, 28px);
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: clamp(0.75rem, 2vmin, 1rem);
   font-weight: 600;
   cursor: pointer;
   color: #fff;
@@ -219,14 +260,186 @@ body {
 
 /* ── SIDEBAR ── */
 #sidebar {
-  width: var(--sidebar-width);
+  width: clamp(220px, 28vw, 320px);
   height: 100vh;
   background: var(--surface);
   border-left: 1px solid var(--border);
   display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: width 0.25s ease;
+}
+
+#sidebar.collapsed { width: 28px; }
+
+#sidebar-tabbar {
+  width: 28px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--surface2);
+  border-right: 1px solid var(--border);
+}
+
+#sidebar-toggle {
+  width: 28px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+}
+#sidebar-toggle:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+.tab-btn {
+  width: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 10px 0;
+}
+.tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.tab-btn.active { color: var(--text); background: rgba(255,255,255,0.12); }
+
+#sidebar-content {
+  flex: 1;
+  display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
+
+#view-lists {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+#view-config {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  padding: 12px;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* ── CONFIG PANEL ── */
+.config-section { display: flex; flex-direction: column; gap: 8px; }
+
+.config-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hint-row { display: flex; flex-direction: column; gap: 6px; padding: 4px 0; }
+.hint-row-label { font-size: 0.88rem; font-weight: 600; }
+.hint-options { display: flex; gap: 4px; }
+
+.hint-radio-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: var(--text-dim);
+}
+.hint-radio-label.selected { background: var(--surface2); border-color: var(--text-dim); color: var(--text); }
+.hint-radio-label input { display: none; }
+
+#gen-checkboxes { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.gen-check-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--text-dim);
+}
+.gen-check-label.selected { background: var(--surface2); border-color: var(--text-dim); color: var(--text); }
+.gen-check-label input { display: none; }
+
+#import-export-area {
+  width: 100%;
+  height: 90px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 0.72rem;
+  font-family: monospace;
+  padding: 8px;
+  resize: vertical;
+  outline: none;
+  line-height: 1.5;
+}
+
+.config-btn-row { display: flex; gap: 8px; }
+
+.config-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.config-btn:hover { background: rgba(255,255,255,0.08); }
+
+/* ── HINT REVEAL BUTTON ── */
+.hint-reveal-btn {
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.hint-reveal-btn:hover { color: var(--text); border-color: var(--text-dim); }
+
+/* ── SILHOUETTE HINTS LARGER + ABOVE GLOW ── */
+#silhouette-screen .type-badge { font-size: 0.9rem; padding: 5px 14px; }
+#silhouette-screen .gen-label  { font-size: 0.9rem; padding: 5px 14px; }
 
 #filter-bar {
   padding: 10px 12px;
@@ -302,7 +515,12 @@ body {
   background: var(--surface2);
   flex-shrink: 0;
   user-select: none;
+  cursor: pointer;
 }
+
+.list-panel.collapsed .list-body { display: none; }
+.list-panel.collapsed { flex: 0 0 auto; }
+.list-panel.collapsed .list-collapse-arrow { transform: rotate(-90deg); }
 
 .list-title {
   font-size: 0.8rem;
@@ -325,9 +543,19 @@ body {
   font-size: 0.9rem;
   border-radius: 3px;
 }
+.edit-btn.is-pen .pen-icon { display: inline-block; transform: rotate(135deg); }
 .edit-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
 .edit-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .edit-btn[title] { position: relative; }
+
+.list-collapse-arrow {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-right: 2px;
+  flex-shrink: 0;
+  display: inline-block;
+  line-height: 1;
+}
 
 .list-body {
   flex: 1;
@@ -416,6 +644,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .screen { transition: none !important; }
   .action-btn { transition: none !important; }
+  #sidebar { transition: none !important; }
   * { animation-duration: 0.001ms !important; }
 }
 </style>
@@ -441,29 +670,48 @@ body {
 
   <!-- Silhouette Screen -->
   <div id="silhouette-screen" class="screen">
+    <div id="silhouette-name-area" class="pokemon-display-name"></div>
     <div class="sprite-wrapper" id="silhouette-wrapper">
       <div class="spinner" id="silhouette-spinner"></div>
     </div>
-    <div id="silhouette-hint">Click or press Space to reveal</div>
+    <div class="card-meta">
+      <div id="silhouette-types" class="type-badges"></div>
+      <span id="silhouette-gen" class="gen-label"></span>
+    </div>
+    <div class="action-buttons">
+      <button class="action-btn btn-return" id="btn-reveal-all">Reveal all</button>
+    </div>
   </div>
 
   <!-- Reveal Screen -->
   <div id="reveal-screen" class="screen">
-    <div id="reveal-name"></div>
+    <div id="reveal-name" class="pokemon-display-name"></div>
     <div class="sprite-wrapper" id="reveal-wrapper">
       <img id="reveal-img" src="" alt="">
     </div>
-    <div id="reveal-types" class="type-badges"></div>
+    <div class="card-meta">
+      <div id="reveal-types" class="type-badges"></div>
+      <span id="reveal-gen" class="gen-label"></span>
+    </div>
     <div class="action-buttons">
-      <button class="action-btn btn-confirm" id="btn-confirm">✓ Guessed</button>
-      <button class="action-btn btn-return"  id="btn-return">↩ Return</button>
-      <button class="action-btn btn-remove"  id="btn-remove">✕ Remove</button>
+      <button class="action-btn btn-confirm" id="btn-confirm" title="Remove from roulette as guessed">✓ Guessed</button>
+      <button class="action-btn btn-return"  id="btn-return"  title="Return to the roulette">↩ Return</button>
+      <button class="action-btn btn-remove"  id="btn-remove"  title="Remove from roulette as failed">✕ Failed</button>
     </div>
   </div>
 </div>
 
 <!-- Sidebar -->
 <aside id="sidebar">
+  <div id="sidebar-tabbar">
+    <button id="sidebar-toggle" title="Collapse sidebar">›</button>
+    <button class="tab-btn active" id="tab-lists" title="Lists">📖</button>
+    <button class="tab-btn" id="tab-config" title="Config">⚙</button>
+  </div>
+  <div id="sidebar-content">
+
+  <!-- Lists view -->
+  <div id="view-lists">
   <div id="filter-bar">
     <input type="text" id="filter-name" placeholder="Filter by name…">
     <div id="filter-row2">
@@ -479,32 +727,87 @@ body {
 
   <div class="lists-container">
     <div class="list-panel" id="panel-viable" data-list="viable">
-      <div class="list-header">
+      <div class="list-header" id="header-viable">
+        <span class="list-collapse-arrow">▾</span>
         <span class="list-title">Viable</span>
         <span class="list-count" id="count-viable">0 / 0</span>
-        <button class="edit-btn" id="edit-viable" title="Edit list">✏</button>
+        <button class="edit-btn is-pen" id="edit-viable" title="Edit list"><span class="pen-icon">✏</span></button>
       </div>
       <div class="list-body" id="body-viable"></div>
     </div>
     <div class="list-panel" id="panel-guessed" data-list="guessed">
-      <div class="list-header">
+      <div class="list-header" id="header-guessed">
+        <span class="list-collapse-arrow">▾</span>
         <span class="list-title">Guessed</span>
         <span class="list-count" id="count-guessed">0 / 0</span>
-        <button class="edit-btn" id="edit-guessed" title="Edit list">✏</button>
+        <button class="edit-btn is-pen" id="edit-guessed" title="Edit list"><span class="pen-icon">✏</span></button>
       </div>
       <div class="list-body" id="body-guessed"></div>
     </div>
     <div class="list-panel" id="panel-removed" data-list="removed">
-      <div class="list-header">
-        <span class="list-title">Removed</span>
+      <div class="list-header" id="header-removed">
+        <span class="list-collapse-arrow">▾</span>
+        <span class="list-title">Failed</span>
         <span class="list-count" id="count-removed">0 / 0</span>
-        <button class="edit-btn" id="edit-removed" title="Edit list">✏</button>
+        <button class="edit-btn is-pen" id="edit-removed" title="Edit list"><span class="pen-icon">✏</span></button>
       </div>
       <div class="list-body" id="body-removed"></div>
     </div>
   </div>
 
   <button id="reset-btn">↺ Reset all lists</button>
+  </div><!-- #view-lists -->
+
+  <!-- Config view -->
+  <div id="view-config">
+    <div class="config-section">
+      <div class="config-section-title">Hints</div>
+      <div class="hint-row">
+        <div class="hint-row-label">Name</div>
+        <div class="hint-options">
+          <label class="hint-radio-label"><input type="radio" name="hint-name" value="hidden"> Hidden</label>
+          <label class="hint-radio-label"><input type="radio" name="hint-name" value="disabled"> Disabled</label>
+        </div>
+      </div>
+      <div class="hint-row">
+        <div class="hint-row-label">Sprite</div>
+        <div class="hint-options">
+          <label class="hint-radio-label"><input type="radio" name="hint-sprite" value="hidden"> Hidden</label>
+          <label class="hint-radio-label"><input type="radio" name="hint-sprite" value="visible"> Visible</label>
+        </div>
+      </div>
+      <div class="hint-row">
+        <div class="hint-row-label">Types</div>
+        <div class="hint-options">
+          <label class="hint-radio-label"><input type="radio" name="hint-types" value="visible"> Visible</label>
+          <label class="hint-radio-label"><input type="radio" name="hint-types" value="hidden"> Hidden</label>
+          <label class="hint-radio-label"><input type="radio" name="hint-types" value="disabled"> Disabled</label>
+        </div>
+      </div>
+      <div class="hint-row">
+        <div class="hint-row-label">Generation</div>
+        <div class="hint-options">
+          <label class="hint-radio-label"><input type="radio" name="hint-gen" value="visible"> Visible</label>
+          <label class="hint-radio-label"><input type="radio" name="hint-gen" value="hidden"> Hidden</label>
+          <label class="hint-radio-label"><input type="radio" name="hint-gen" value="disabled"> Disabled</label>
+        </div>
+      </div>
+    </div>
+    <div class="config-section">
+      <div class="config-section-title">Generations</div>
+      <div id="gen-checkboxes"></div>
+    </div>
+    <div class="config-section">
+      <div class="config-section-title">Import / Export</div>
+      <textarea id="import-export-area" placeholder="Paste exported data here to import…" spellcheck="false"></textarea>
+      <div class="config-btn-row">
+        <button class="config-btn" id="btn-export">Export</button>
+        <button class="config-btn" id="btn-import">Import</button>
+      </div>
+    </div>
+  </div><!-- #view-config -->
+
+  </div><!-- #sidebar-content -->
 </aside>
 
 <script>
@@ -521,6 +824,9 @@ const TYPE_COLORS = {
 };
 
 const STORAGE_KEY = 'pokeroulette_lists';
+const SIDEBAR_KEY = 'pokeroulette_sidebar_collapsed';
+const COLLAPSE_KEY = 'pokeroulette_panels_collapsed';
+const CONFIG_KEY   = 'pokeroulette_config';
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ── STATE ──
@@ -531,7 +837,16 @@ let validatedEntries = { viable: [], guessed: [], removed: [] }; // [{raw, statu
 
 let currentScreen = 'roulette'; // 'roulette' | 'silhouette' | 'reveal'
 let selectedPokemon = null;
+let revealState = { name: false, types: false, gen: false };
 let editMode = { viable: false, guessed: false, removed: false };
+let editModeFilteredOut = { viable: [], guessed: [], removed: [] };
+let sidebarCollapsed = false;
+let panelCollapsed = { viable: false, guessed: false, removed: false };
+let currentTab = 'lists';
+let config = {
+  hints: { name: 'hidden', sprite: 'hidden', types: 'hidden', gen: 'hidden' },
+  gens: null,
+};
 
 // Wheel animation
 let wheelAngle = 0;       // current rotation in radians
@@ -570,9 +885,13 @@ async function init() {
     typeSelect.appendChild(opt);
   }
 
+  loadSidebarState();
+  loadPanelCollapseState();
+  loadConfig();
   loadLists();
   validateAll();
   renderSidebar();
+  buildConfigPanel();
   buildWheel();
   startIdleSpin();
   bindEvents();
@@ -604,10 +923,161 @@ function saveLists() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
 }
 
+// ── SIDEBAR COLLAPSE ──
+function loadSidebarState() {
+  sidebarCollapsed = localStorage.getItem(SIDEBAR_KEY) === 'true';
+  applySidebarState();
+}
+
+function applySidebarState() {
+  const sidebar = document.getElementById('sidebar');
+  const btn = document.getElementById('sidebar-toggle');
+  if (sidebarCollapsed) {
+    sidebar.classList.add('collapsed');
+    btn.textContent = '‹';
+    btn.title = 'Expand sidebar';
+  } else {
+    sidebar.classList.remove('collapsed');
+    btn.textContent = '›';
+    btn.title = 'Collapse sidebar';
+  }
+}
+
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed;
+  localStorage.setItem(SIDEBAR_KEY, sidebarCollapsed);
+  applySidebarState();
+}
+
+// ── PANEL COLLAPSE ──
+function loadPanelCollapseState() {
+  try {
+    const raw = localStorage.getItem(COLLAPSE_KEY);
+    if (raw) Object.assign(panelCollapsed, JSON.parse(raw));
+  } catch(e) {}
+  for (const listName of ['viable', 'guessed', 'removed']) {
+    applyPanelCollapse(listName);
+  }
+}
+
+function applyPanelCollapse(listName) {
+  document.getElementById(`panel-${listName}`)
+    .classList.toggle('collapsed', panelCollapsed[listName]);
+}
+
+function togglePanelCollapse(listName) {
+  if (editMode[listName]) return;
+  panelCollapsed[listName] = !panelCollapsed[listName];
+  applyPanelCollapse(listName);
+  localStorage.setItem(COLLAPSE_KEY, JSON.stringify(panelCollapsed));
+}
+
+// ── CONFIG ──
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem(CONFIG_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (saved.hints) config.hints = { ...config.hints, ...saved.hints };
+      if (saved.gens !== undefined) config.gens = saved.gens;
+    }
+  } catch(e) {}
+}
+
+function saveConfig() {
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+}
+
+function buildConfigPanel() {
+  const allGens = [...new Set(allPokemon.map(p => p.gen))].sort((a, b) => a - b);
+
+  if (config.gens === null) {
+    config.gens = allGens;
+    saveConfig();
+  }
+
+  // Gen checkboxes
+  const container = document.getElementById('gen-checkboxes');
+  container.innerHTML = '';
+  for (const gen of allGens) {
+    const label = document.createElement('label');
+    label.className = 'gen-check-label' + (config.gens.includes(gen) ? ' selected' : '');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = gen;
+    cb.checked = config.gens.includes(gen);
+    cb.addEventListener('change', () => {
+      if (cb.checked) {
+        if (!config.gens.includes(gen)) config.gens.push(gen);
+      } else {
+        config.gens = config.gens.filter(g => g !== gen);
+      }
+      label.classList.toggle('selected', cb.checked);
+      saveConfig();
+    });
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(`Gen ${gen}`));
+    container.appendChild(label);
+  }
+
+  // Hint radio selected states
+  for (const key of ['name', 'sprite', 'types', 'gen']) {
+    document.querySelectorAll(`input[name="hint-${key}"]`).forEach(radio => {
+      const isSelected = radio.value === config.hints[key];
+      radio.checked = isSelected;
+      radio.closest('.hint-radio-label').classList.toggle('selected', isSelected);
+    });
+  }
+}
+
+function switchTab(name) {
+  currentTab = name;
+  document.getElementById('view-lists').style.display = name === 'lists' ? 'flex' : 'none';
+  document.getElementById('view-config').style.display = name === 'config' ? 'flex' : 'none';
+  document.getElementById('tab-lists').classList.toggle('active', name === 'lists');
+  document.getElementById('tab-config').classList.toggle('active', name === 'config');
+}
+
+function exportData() {
+  const idLists = {};
+  for (const ln of ['viable', 'guessed', 'removed']) {
+    idLists[ln] = validatedEntries[ln]
+      .filter(e => e.status === 'valid')
+      .map(e => e.pokemon.id);
+  }
+  return btoa(JSON.stringify({ version: 2, lists: idLists, config }));
+}
+
+function importData(str) {
+  try {
+    const data = JSON.parse(atob(str.trim()));
+    if (data.lists) {
+      for (const ln of ['viable', 'guessed', 'removed']) {
+        lists[ln] = (data.lists[ln] || [])
+          .map(id => allPokemon.find(p => p.id === id)?.name)
+          .filter(Boolean);
+      }
+      saveLists();
+    }
+    if (data.config) {
+      if (data.config.hints) config.hints = { ...config.hints, ...data.config.hints };
+      if (data.config.gens)  config.gens  = data.config.gens;
+      saveConfig();
+    }
+    validateAll();
+    renderSidebar();
+    buildConfigPanel();
+    buildWheel();
+    return true;
+  } catch(e) { return false; }
+}
+
 // ── NAME NORMALIZATION ──
 function normalizeName(s) {
   return s.toLowerCase()
-    .replace(/[-'.♀♂]/g, '')
+    .replace(/♀/g, 'f')
+    .replace(/♂/g, 'm')
+    .replace(/[-'.]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -748,15 +1218,8 @@ function updateCenterText() {
   const centerText = document.getElementById('wheel-center-text');
   if (spinState === 'idle') {
     centerText.innerHTML = '<div class="spin-prompt">Click to spin</div>';
-  } else if (spinState === 'settled' && winner) {
-    let html = `<div class="pokemon-name">${winner.name}</div>`;
-    html += '<div class="type-badges">';
-    html += `<span class="type-badge" style="background:${TYPE_COLORS[winner.type1]}">${winner.type1}</span>`;
-    if (winner.type2) {
-      html += `<span class="type-badge" style="background:${TYPE_COLORS[winner.type2]}">${winner.type2}</span>`;
-    }
-    html += '</div>';
-    centerText.innerHTML = html;
+  } else if (spinState === 'settled') {
+    centerText.innerHTML = '';
   } else {
     centerText.innerHTML = '';
   }
@@ -803,44 +1266,35 @@ function animLoop(ts) {
     applyWheelRotation();
 
     if (wheelVelocity < 0.05) {
-      // Snap to winner angle
-      snapToWinner();
+      settleWheel();
     } else {
       animFrame = requestAnimationFrame(animLoop);
     }
   }
 }
 
-function snapToWinner() {
-  stopAnimation();
-  if (!winner) return;
-
+function readPointerWinner() {
   const valid = getValidViable();
-  const idx = valid.findIndex(p => p.id === winner.id);
-  if (idx === -1) return;
-
+  if (valid.length === 0) return null;
   const anglePerSlice = (2 * Math.PI) / valid.length;
-  // The winning segment should be at 12 o'clock (top), which is -PI/2 in svg coords.
-  // Segment i starts at: i * anglePerSlice - PI/2 (in world space before rotation)
-  // After rotation by wheelAngle: segment center is at: (i + 0.5) * anglePerSlice - PI/2 + wheelAngle
-  // We want that to equal -PI/2 (pointing up), so:
-  // wheelAngle = -i * anglePerSlice - 0.5 * anglePerSlice + n*2*PI
-  const targetAngle = -(idx + 0.5) * anglePerSlice;
-  // Find nearest multiple of 2PI
-  const currentNorm = ((wheelAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-  const targetNorm = ((targetAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-  let diff = targetNorm - currentNorm;
-  if (diff > Math.PI) diff -= 2 * Math.PI;
-  if (diff < -Math.PI) diff += 2 * Math.PI;
-  wheelAngle += diff;
-  applyWheelRotation();
+  // Pointer is at 12 o'clock. In unrotated wheel space, that maps to angle (-wheelAngle).
+  // Segments start at -PI/2, so compute offset from -PI/2:
+  const relAngle = ((-wheelAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const idx = Math.floor(relAngle / anglePerSlice) % valid.length;
+  return valid[idx];
+}
+
+function settleWheel() {
+  stopAnimation();
+  winner = readPointerWinner();
+  if (!winner) return;
 
   spinState = 'settled';
   updateCenterText();
 
   settleTimeout = setTimeout(() => {
     showSilhouette(winner);
-  }, 1000);
+  }, 600);
 }
 
 // ── SPIN ACTIVATION ──
@@ -849,8 +1303,7 @@ function activateSpin() {
   if (valid.length === 0) return;
 
   if (spinState === 'idle') {
-    // Pick winner
-    winner = valid[Math.floor(Math.random() * valid.length)];
+    winner = null;
     spinState = 'spinning';
     wheelVelocity = 15 + Math.random() * 5; // fast initial snap
     updateCenterText();
@@ -893,32 +1346,128 @@ function updateEditLock() {
   document.getElementById('reset-btn').disabled = locked;
 }
 
+function checkAllRevealed() {
+  if (revealState.name && revealState.sprite && revealState.types && revealState.gen) showReveal();
+}
+
 function showSilhouette(p) {
   selectedPokemon = p;
 
-  const wrapper = document.getElementById('silhouette-wrapper');
-  wrapper.innerHTML = '<div class="spinner" id="silhouette-spinner"></div>';
+  revealState = {
+    name:   config.hints.name   === 'hidden' ? false : true,  // disabled → not a prerequisite
+    sprite: config.hints.sprite === 'hidden' ? false : true,  // visible  → already revealed
+    types:  config.hints.types  !== 'hidden',
+    gen:    config.hints.gen    !== 'hidden',
+  };
 
-  // Apply type glow
-  const c1 = TYPE_COLORS[p.type1] || '#888';
-  const c2 = p.type2 ? (TYPE_COLORS[p.type2] || '#888') : null;
-  if (c2) {
-    wrapper.style.boxShadow = `12px 0 32px 8px ${c1}, -12px 0 32px 8px ${c2}`;
-  } else {
-    wrapper.style.boxShadow = `0 0 32px 8px ${c1}`;
+  // Name area
+  const nameArea = document.getElementById('silhouette-name-area');
+  nameArea.innerHTML = '';
+  if (config.hints.name === 'hidden') {
+    const nameBtn = document.createElement('button');
+    nameBtn.className = 'hint-reveal-btn';
+    nameBtn.textContent = 'Reveal name';
+    nameBtn.onclick = () => {
+      revealState.name = true;
+      nameArea.textContent = p.name;
+      checkAllRevealed();
+    };
+    nameArea.appendChild(nameBtn);
   }
+  // disabled → nameArea stays empty, not a prerequisite
+
+  // Type badges
+  const typesEl = document.getElementById('silhouette-types');
+  typesEl.innerHTML = '';
+  if (config.hints.types === 'disabled') {
+    typesEl.style.display = 'none';
+  } else {
+    typesEl.style.display = '';
+    const renderTypeBadges = () => {
+      typesEl.innerHTML = '';
+      const b1 = document.createElement('span');
+      b1.className = 'type-badge';
+      b1.style.background = TYPE_COLORS[p.type1] || '#888';
+      b1.textContent = p.type1;
+      typesEl.appendChild(b1);
+      if (p.type2) {
+        const b2 = document.createElement('span');
+        b2.className = 'type-badge';
+        b2.style.background = TYPE_COLORS[p.type2] || '#888';
+        b2.textContent = p.type2;
+        typesEl.appendChild(b2);
+      }
+    };
+    if (config.hints.types === 'hidden') {
+      const btn = document.createElement('button');
+      btn.className = 'hint-reveal-btn';
+      btn.textContent = 'Reveal types';
+      btn.onclick = () => { revealState.types = true; renderTypeBadges(); checkAllRevealed(); };
+      typesEl.appendChild(btn);
+    } else {
+      renderTypeBadges();
+    }
+  }
+
+  // Gen label
+  const genEl = document.getElementById('silhouette-gen');
+  genEl.innerHTML = '';
+  if (config.hints.gen === 'disabled') {
+    genEl.style.cssText = 'display:none';
+  } else {
+    const renderGen = () => {
+      genEl.style.cssText = '';
+      genEl.textContent = `Gen ${p.gen}`;
+    };
+    if (config.hints.gen === 'hidden') {
+      genEl.style.cssText = 'border:none;padding:0;background:none';
+      const btn = document.createElement('button');
+      btn.className = 'hint-reveal-btn';
+      btn.textContent = 'Reveal gen';
+      btn.onclick = () => { revealState.gen = true; renderGen(); checkAllRevealed(); };
+      genEl.appendChild(btn);
+    } else {
+      renderGen();
+    }
+  }
+
+  const wrapper = document.getElementById('silhouette-wrapper');
+  wrapper.innerHTML = '';
+  wrapper.onclick = null;
+  wrapper.style.cursor = '';
+
+  const spinner = document.createElement('div');
+  spinner.className = 'spinner';
+  spinner.id = 'silhouette-spinner';
+  wrapper.appendChild(spinner);
 
   const img = document.createElement('img');
   img.src = p.spriteUrl;
   img.alt = '?';
-  img.style.cssText = 'filter: brightness(0); position:absolute; top:0; left:0;';
+  const spriteHidden = config.hints.sprite === 'hidden';
+  img.style.cssText = `${spriteHidden ? 'filter:brightness(0);' : ''} position:absolute; inset:0; width:100%; height:100%; object-fit:contain;`;
+
+  if (spriteHidden) {
+    wrapper.style.cursor = 'pointer';
+    wrapper.onclick = () => {
+      img.style.filter = '';
+      wrapper.querySelector('.question-mark')?.remove();
+      wrapper.style.cursor = '';
+      wrapper.onclick = null;
+      revealState.sprite = true;
+      checkAllRevealed();
+    };
+  }
+
   img.onload = () => {
     document.getElementById('silhouette-spinner')?.remove();
     wrapper.appendChild(img);
-    const qm = document.createElement('div');
-    qm.className = 'question-mark';
-    qm.textContent = '?';
-    wrapper.appendChild(qm);
+    if (spriteHidden) {
+      const qm = document.createElement('div');
+      qm.className = 'question-mark';
+      qm.textContent = '?';
+      wrapper.appendChild(qm);
+    }
   };
   img.onerror = () => {
     document.getElementById('silhouette-spinner')?.remove();
@@ -942,12 +1491,6 @@ function showReveal() {
 
   const c1 = TYPE_COLORS[p.type1] || '#888';
   const c2 = p.type2 ? (TYPE_COLORS[p.type2] || '#888') : null;
-  const revealWrapper = document.getElementById('reveal-wrapper');
-  if (c2) {
-    revealWrapper.style.boxShadow = `12px 0 32px 8px ${c1}, -12px 0 32px 8px ${c2}`;
-  } else {
-    revealWrapper.style.boxShadow = `0 0 32px 8px ${c1}`;
-  }
 
   const typesEl = document.getElementById('reveal-types');
   typesEl.innerHTML = '';
@@ -963,6 +1506,8 @@ function showReveal() {
     b2.textContent = p.type2;
     typesEl.appendChild(b2);
   }
+
+  document.getElementById('reveal-gen').textContent = `Gen ${p.gen}`;
 
   showScreen('reveal');
 }
@@ -1175,20 +1720,29 @@ function handleDrop(targetList, data) {
 // ── EDIT MODE ──
 function enterEditMode(listName) {
   if (currentScreen !== 'roulette') return;
+
+  // Auto-expand if collapsed (must happen before editMode is set)
+  if (panelCollapsed[listName]) togglePanelCollapse(listName);
+
   editMode[listName] = true;
 
   const body = document.getElementById(`body-${listName}`);
   const btn = document.getElementById(`edit-${listName}`);
   btn.textContent = '✓ Done';
+  btn.classList.remove('is-pen');
+
+  // Respect filters: show only filtered-in raws, preserve filtered-out raws for merge on exit
+  const filteredIn  = validatedEntries[listName].filter(e =>  matchesFilter(e));
+  const filteredOut = validatedEntries[listName].filter(e => !matchesFilter(e));
+  editModeFilteredOut[listName] = filteredOut.map(e => e.raw);
 
   const textarea = document.createElement('textarea');
   textarea.className = 'list-textarea';
-  textarea.value = lists[listName].join('\n');
+  textarea.value = filteredIn.map(e => e.raw).join('\n');
   body.innerHTML = '';
   body.appendChild(textarea);
   textarea.focus();
 
-  textarea.addEventListener('blur', () => exitEditMode(listName));
 }
 
 function exitEditMode(listName) {
@@ -1196,13 +1750,16 @@ function exitEditMode(listName) {
   const body = document.getElementById(`body-${listName}`);
   const textarea = body.querySelector('textarea');
   if (textarea) {
-    const lines = textarea.value.split('\n').map(s => s.trim()).filter(s => s.length > 0);
-    lists[listName] = lines;
+    const editedLines = textarea.value.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+    // Merge: hidden (filtered-out) entries first, then the edited visible entries
+    lists[listName] = [...editModeFilteredOut[listName], ...editedLines];
   }
   editMode[listName] = false;
+  editModeFilteredOut[listName] = [];
 
   const btn = document.getElementById(`edit-${listName}`);
-  btn.textContent = '✏';
+  btn.innerHTML = '<span class="pen-icon">✏</span>';
+  btn.classList.add('is-pen');
 
   saveLists();
   validateAll();
@@ -1212,15 +1769,16 @@ function exitEditMode(listName) {
 
 // ── EVENTS ──
 function bindEvents() {
+  document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+
   // Wheel click
   document.getElementById('wheel-container').addEventListener('click', () => {
     if (currentScreen !== 'roulette') return;
     activateSpin();
   });
 
-  // Silhouette click
-  document.getElementById('silhouette-screen').addEventListener('click', () => {
-    if (currentScreen !== 'silhouette') return;
+  // Reveal all button
+  document.getElementById('btn-reveal-all').addEventListener('click', () => {
     showReveal();
   });
 
@@ -1246,23 +1804,28 @@ function bindEvents() {
     if (currentScreen === 'roulette') {
       activateSpin();
     } else if (currentScreen === 'silhouette') {
-      showReveal();
+      document.getElementById('btn-reveal-all').click();
     }
     // disabled on reveal
   });
 
-  // Edit buttons
+  // Edit buttons + header collapse toggle
   for (const listName of ['viable', 'guessed', 'removed']) {
-    document.getElementById(`edit-${listName}`).addEventListener('click', () => {
+    document.getElementById(`edit-${listName}`).addEventListener('click', (e) => {
+      e.stopPropagation();
       if (editMode[listName]) {
         exitEditMode(listName);
       } else {
-        // Exit any other edit modes first
         for (const ln of ['viable', 'guessed', 'removed']) {
           if (ln !== listName && editMode[ln]) exitEditMode(ln);
         }
         enterEditMode(listName);
       }
+    });
+
+    document.getElementById(`header-${listName}`).addEventListener('click', (e) => {
+      if (e.target.closest('.edit-btn')) return;
+      togglePanelCollapse(listName);
     });
   }
 
@@ -1291,12 +1854,49 @@ function bindEvents() {
     renderSidebar();
   });
 
+  // Tab switching
+  document.getElementById('tab-lists').addEventListener('click', () => switchTab('lists'));
+  document.getElementById('tab-config').addEventListener('click', () => switchTab('config'));
+
+  // Hint radios
+  for (const key of ['name', 'sprite', 'types', 'gen']) {
+    document.querySelectorAll(`input[name="hint-${key}"]`).forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (!radio.checked) return;
+        config.hints[key] = radio.value;
+        saveConfig();
+        document.querySelectorAll(`input[name="hint-${key}"]`).forEach(r => {
+          r.closest('.hint-radio-label').classList.toggle('selected', r === radio);
+        });
+      });
+    });
+  }
+
+  // Export / Import
+  document.getElementById('btn-export').addEventListener('click', () => {
+    const str = exportData();
+    document.getElementById('import-export-area').value = str;
+    navigator.clipboard?.writeText(str).catch(() => {});
+  });
+
+  document.getElementById('btn-import').addEventListener('click', () => {
+    const str = document.getElementById('import-export-area').value.trim();
+    if (!str) return;
+    if (!importData(str)) alert('Invalid import data.');
+    else document.getElementById('import-export-area').value = '';
+  });
+
   // Reset
   document.getElementById('reset-btn').addEventListener('click', () => {
     if (currentScreen !== 'roulette') return;
-    if (!confirm('Reset all lists? This will restore all 1025 Pokémon to the Viable list and cannot be undone.')) return;
-    localStorage.removeItem(STORAGE_KEY);
-    loadLists();
+    if (!confirm('Reset all lists? This cannot be undone.')) return;
+    const selectedGens = new Set(config.gens || []);
+    lists = {
+      viable:  allPokemon.filter(p => selectedGens.size === 0 || selectedGens.has(p.gen)).map(p => p.name),
+      guessed: [],
+      removed: [],
+    };
+    saveLists();
     validateAll();
     renderSidebar();
     buildWheel();

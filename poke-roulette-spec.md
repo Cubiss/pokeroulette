@@ -1,6 +1,6 @@
 # Poké Roulette — Project Specification
 
-Version 1.2
+Version 1.3
 
 ---
 
@@ -8,22 +8,20 @@ Version 1.2
 
 Poké Roulette is a single-page web application for randomly selecting a Pokémon from a configurable pool. It is primarily intended as a guessing-game aid: one player spins the roulette and sees the result; another player tries to guess the Pokémon from a silhouette before the full reveal.
 
-|                     |                                                                                                              |
-|---------------------|--------------------------------------------------------------------------------------------------------------|
-| **Tech stack**      | Plain HTML + CSS + JavaScript (no framework required). Single `.html` file plus a `pokemon.json` data file. |
-| **Data source**     | Bundled `pokemon.json` (see Section 2). No runtime API calls for Pokémon data.                               |
-| **Sprites**         | Official artwork via PokéAPI CDN, fetched at display time by ID (see Section 3.2).                           |
-| **Persistence**     | `localStorage` — all three lists survive page refresh.                                                       |
-| **Pokémon pool**    | All generations (currently 1025 Pokémon as of Gen 9).                                                        |
-| **Target platform** | Desktop browser only. Minimum supported viewport: 1024px wide.                                               |
+|                      |                                                                                                                                                                                                                           |
+|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Tech stack**       | Plain HTML + CSS + JavaScript (no framework). Single `.html` file plus a `pokemon.json` data file.                                                                                                                        |
+| **Data source**      | Bundled `pokemon.json` (see Section 2). No runtime API calls for Pokémon data.                                                                                                                                            |
+| **Sprites**          | Official artwork via PokéAPI CDN, fetched at display time by ID.                                                                                                                                                          |
+| **Persistence**      | `localStorage` — all lists and settings survive page refresh.                                                                                                                                                             |
+| **Pokémon pool**     | All generations (currently 1025 Pokémon as of Gen 9).                                                                                                                                                                     |
+| **Target platform**  | Desktop browser primarily. Layout is fully responsive: roulette wheel, silhouette, and reveal screens all scale to fit the viewport. The sidebar stays fixed on the right. No minimum viewport enforced.                  |
 
 ---
 
 ## 2. Data Model
 
 ### 2.1 Bundled `pokemon.json`
-
-The application ships with a pre-built `pokemon.json` file co-located with the HTML. This file is the canonical source of truth for all Pokémon data. No runtime metadata fetching from PokéAPI is performed.
 
 Schema (array of objects):
 
@@ -43,31 +41,26 @@ Schema (array of objects):
 | Field       | Type           | Notes                                                       |
 |-------------|----------------|-------------------------------------------------------------|
 | `id`        | number         | National Pokédex number                                     |
-| `name`      | string         | Capitalized English name, e.g. "Bulbasaur"                  |
+| `name`      | string         | Capitalized English name                                    |
 | `gen`       | number         | Generation introduced (1–9)                                 |
-| `type1`     | string         | Primary type (always present), capitalized                  |
+| `type1`     | string         | Primary type, always present, capitalized                   |
 | `type2`     | string \| null | Secondary type; null for single-type Pokémon                |
-| `spriteUrl` | string         | Absolute URL to the official-artwork PNG on the PokéAPI CDN |
+| `spriteUrl` | string         | Absolute URL to the official-artwork PNG on PokéAPI CDN     |
 
-### 2.2 Per-entry runtime field
+### 2.2 localStorage schema
 
-Each Pokémon carries a `list` field at runtime (not stored in `pokemon.json`):
+| Key                              | Format      | Contents                                                          |
+|----------------------------------|-------------|-------------------------------------------------------------------|
+| `pokeroulette_lists`             | JSON object | `{viable:[...names], guessed:[...names], removed:[...names]}`     |
+| `pokeroulette_sidebar_collapsed` | string      | `"true"` or `"false"`                                             |
+| `pokeroulette_panels_collapsed`  | JSON object | `{viable:bool, guessed:bool, removed:bool}`                       |
+| `pokeroulette_config`            | JSON object | Settings (see Section 5)                                          |
 
-| Field  | Type                                      | Notes                   |
-|--------|-------------------------------------------|-------------------------|
-| `list` | `"viable"` \| `"guessed"` \| `"removed"` | Current list membership |
+Lists are stored as arrays of **raw strings** (as entered by the user). Validation runs at render time, preserving unknown or malformed entries for correction. The internal list key for the Failed list is `removed`.
 
-### 2.3 localStorage schema
+**First load**: if `pokeroulette_lists` is absent, all 1025 Pokémon names are written to `viable` in Pokédex order.
 
-| Key                  | Format      | Contents                                                       |
-|----------------------|-------------|----------------------------------------------------------------|
-| `pokeroulette_lists` | JSON object | `{viable:[...names], guessed:[...names], removed:[...names]}` |
-
-Lists are stored as arrays of **raw strings** as entered by the user, not as IDs. Validation is performed at render time (see Section 4). This preserves unknown or malformed entries so the user can correct them.
-
-**First load**: if `pokeroulette_lists` is absent in `localStorage`, all 1025 Pokémon names from `pokemon.json` are written to the `viable` array in Pokédex order (#1–1025). On subsequent loads, `localStorage` takes precedence.
-
-**Reset**: clearing `localStorage` and reloading re-seeds from `pokemon.json`.
+**Reset**: rebuilds `viable` from `pokemon.json`, filtered to the generations selected in Config. Empties `guessed` and `removed`. Requires a confirmation prompt.
 
 ---
 
@@ -75,82 +68,79 @@ Lists are stored as arrays of **raw strings** as entered by the user, not as IDs
 
 ### 3.1 Roulette Screen
 
-The default home screen. Renders a circular wheel (SVG) where each arc segment represents one **valid** entry in the Viable list. All segments have equal angular size — every eligible Pokémon has the same probability of being selected.
+The default home screen. Renders a circular SVG wheel where each arc segment represents one valid entry in the Viable list. All segments have equal angular size.
 
 **Segment appearance**
 
-With up to 1025 segments, individual slices are visually very narrow (≈0.35° each at full pool). This is intentional — the wheel resembles a dense color ring, which is an acceptable and deliberate aesthetic. Coloring rules per segment:
-
 - Single-type Pokémon: solid fill using the type's color (see Section 6).
-- Dual-type Pokémon: diagonal stripe pattern — stripes alternate between type1 and type2 colors at 45°. Implemented as an SVG `<pattern>` in `<defs>`, reused across segments. Stripe width ≈ 4–6px at the chart's outer radius.
+- Dual-type Pokémon: diagonal stripe pattern alternating between type1 and type2 colors at 45°, implemented as an SVG `<pattern>`.
 
-**Center display (donut hole)**
+**Center display**
 
-The wheel has a circular center cutout (donut hole, roughly 35–40% of total wheel radius). Usage by state:
-
-| Wheel state | Center content                                        |
-|-------------|-------------------------------------------------------|
-| Idle        | Subtle "Click to spin" prompt                         |
-| Active spin | Empty, or a neutral animation indicator               |
-| Settled     | Selected Pokémon's name and type badge(s)             |
+| Wheel state | Center content              |
+|-------------|-----------------------------|
+| Idle        | "Click to spin" prompt      |
+| Spinning    | Empty                       |
+| Settled     | Empty                       |
 
 **Idle spin**
 
-When the Roulette screen is active and no spin has been triggered, the wheel rotates continuously at a slow idle speed of approximately 1 RPM. This is purely cosmetic — no winner is selected during idle. The idle spin resumes whenever the Roulette screen is returned to (from the Reveal screen or otherwise).
+When the Roulette screen is active and no spin is in progress, the wheel rotates continuously at ~1 RPM. Purely cosmetic. Resumes whenever the Roulette screen is returned to.
 
-**Spin activation**
+**Spin mechanics**
 
-The user activates the wheel by clicking anywhere on it, or pressing **Space**.
+Activated by clicking the wheel or pressing **Space**.
 
-- On activation, the wheel **snaps** from idle speed to a much faster angular velocity (no smooth acceleration blend).
-- The winner is selected via uniform random draw from the valid Viable entries at the moment of activation.
-- Subsequent clicks (or Space presses) during an active spin **add angular velocity** (i.e. the wheel speeds up and takes longer to decelerate to a stop). The added velocity per click is not uniform — it scales with current angular speed: the faster the wheel is already spinning, the more each click adds. This prevents clicks from feeling equally impactful regardless of timing.
-- The wheel decelerates with cubic ease-out friction until it stops. The selected segment aligns with a fixed pointer at the 12 o'clock position when fully stopped.
-- Once stopped, the selected Pokémon's name appears in the center display, then the app transitions to the Silhouette Screen after a brief pause (≈1 second).
-
-**Pointer**
-
-A fixed visual pointer at the 12 o'clock position outside the wheel indicates the winning segment when the spin stops. It is visible during idle but only semantically meaningful after an active spin settles.
+- On activation, the wheel jumps to a high angular velocity.
+- The wheel decelerates with cubic ease-out friction until velocity drops below a threshold (~0.05 rad/s).
+- **No pre-selected winner**: the winning Pokémon is determined by reading whichever segment is under the 12 o'clock pointer when the wheel naturally stops. No snapping.
+- Subsequent clicks/Space during an active spin add angular velocity (amount scales with current speed).
+- After settling, the app transitions to the Silhouette Screen after a brief pause (~600ms).
 
 **Empty state**
 
-If the Viable list has no valid entries, the wheel area displays: *"No Pokémon in the viable list. Add some to get started."* Clicking and Space do nothing.
+If Viable has no valid entries, the wheel is replaced with: *"No Pokémon in the viable list. Add some to get started."*
 
 ---
 
 ### 3.2 Silhouette Screen
 
-Displays the selected Pokémon as a silhouette. The name is hidden. The type-colored glow provides a visual hint before the reveal.
+Displays the selected Pokémon as a silhouette. The screen presents individual reveal buttons for each hint; the full reveal screen is only shown once all prerequisites have been satisfied.
 
-**Silhouette rendering**
+**Layout (top to bottom)**
 
-- Source: the Pokémon's official-artwork PNG fetched from the `spriteUrl` in `pokemon.json`. Official artwork PNGs have a transparent background; no background removal is needed.
-- The silhouette is rendered by displaying the sprite as an `<img>` with the CSS filter:
-  ```css
-  filter: brightness(0);
-  ```
-  This turns all opaque pixels black while preserving transparency, producing a clean black cutout.
-- The sprite is displayed at a fixed size (e.g. 300×300px), centered on screen.
-- A large "?" glyph is centered over the silhouette image.
+1. Name area — shows a "Reveal name" button or nothing depending on config.
+2. Sprite wrapper — shows the silhouette or actual sprite depending on config. Clicking it when in silhouette state reveals the sprite.
+3. Type badges / Generation label — each shown as reveal buttons or actual labels depending on config.
+4. "Reveal all" button — skips directly to the Reveal Screen.
 
-**Type color hint**
+**Sprite rendering**
 
-A colored glow is applied to the sprite container using `box-shadow`:
+- Source: official-artwork PNG fetched from `spriteUrl`.
+- Silhouette: `filter: brightness(0)` turns all opaque pixels black. A large "?" glyph is overlaid.
+- Reveal: filter removed.
+- A spinner is shown while the image loads. On load failure, the Pokémon's name is shown as a fallback.
 
-- Single-type: `box-shadow: 0 0 32px 8px <type1Color>`.
-- Dual-type: two layered box-shadows, one per type color, offset slightly to opposite sides.
+**Reveal prerequisites**
 
-**Loading state**
+Progression to the Reveal Screen is gated by a set of reveal conditions. Each configured hint contributes one condition. A condition is satisfied either individually (by clicking its reveal button) or all at once via "Reveal all".
 
-While the sprite image is loading, show a spinner or placeholder in the sprite area. If the image fails to load, show the Pokémon's name in place of the silhouette as a graceful fallback.
+| Hint      | Config options    | Prerequisite when "hidden"? |
+|-----------|-------------------|-----------------------------|
+| Name      | Hidden / Disabled | Yes (when Hidden)           |
+| Sprite    | Hidden / Visible  | Yes (when Hidden)           |
+| Types     | Visible / Hidden / Disabled | Yes (when Hidden) |
+| Generation| Visible / Hidden / Disabled | Yes (when Hidden) |
 
-**Reveal interaction**
+- **Hidden**: the hint starts as a styled "Reveal X" button. Clicking reveals the content and marks the condition satisfied.
+- **Visible**: the hint is shown immediately; condition auto-satisfied.
+- **Disabled**: the hint is not shown on the silhouette screen; condition auto-satisfied (not a blocker).
 
-Clicking anywhere on the silhouette, or pressing **Space**, transitions to the Reveal Screen (~400ms fade or card-flip animation).
+The auto-transition fires as soon as all conditions are satisfied. "Reveal all" satisfies all conditions and transitions immediately. **Space** triggers "Reveal all".
 
 **Sidebar behavior**
 
-List editing is disabled while the Silhouette screen is active (see Section 4).
+List editing is disabled while the Silhouette screen is active.
 
 ---
 
@@ -159,123 +149,149 @@ List editing is disabled while the Silhouette screen is active (see Section 4).
 **Layout (top to bottom)**
 
 1. Pokémon name — large, centered.
-2. Revealed sprite — same `<img>` as the Silhouette screen, but the `brightness(0)` filter is removed. The type glow remains.
-3. Three action buttons in a row:
+2. Revealed sprite — same image, `brightness(0)` filter removed.
+3. Type badges and Generation label.
+4. Three action buttons:
 
-| Button  | Color           | Glyph | Action                   |
-|---------|-----------------|-------|--------------------------|
-| Confirm | Green `#27C76A` | ✓     | Move to Guessed list     |
-| Return  | Grey `#AAAAAA`  | ↩     | Move back to Viable list |
-| Remove  | Red `#E24B4A`   | ✕     | Move to Removed list     |
+| Button  | Color           | Glyph | Tooltip                          | Action               |
+|---------|-----------------|-------|----------------------------------|----------------------|
+| Guessed | Green `#27C76A` | ✓     | Remove from roulette as guessed  | Move to Guessed list |
+| Return  | Grey `#AAAAAA`  | ↩     | Return to the roulette           | Keep in Viable list  |
+| Failed  | Red `#E24B4A`   | ✕     | Remove from roulette as failed   | Move to Failed list  |
 
-Pressing any button moves the Pokémon (updates lists in memory and in `localStorage`) and transitions back to the Roulette screen (~250ms fade). The wheel re-renders without the acted-upon Pokémon in the Viable list, and the idle spin resumes.
+Pressing any button updates lists in memory and `localStorage`, then transitions back to the Roulette screen (~250ms fade). The wheel re-renders without the acted-upon Pokémon, and idle spin resumes.
 
-**Space** is disabled on the Reveal screen (the three explicit buttons are the only interaction).
+**Space** is disabled on the Reveal screen.
 
 **Sidebar behavior**
 
-List editing is disabled while the Reveal screen is active (see Section 4).
+List editing is disabled while the Reveal screen is active.
 
 ---
 
 ## 4. Lists Panel
 
-A persistent fixed sidebar on the right side of the screen, always visible regardless of which screen is active. Fixed width (e.g. 320px), full viewport height. The main content area occupies the remaining width.
+A fixed sidebar on the right side of the screen. Width is `clamp(220px, 28vw, 320px)` when open, full viewport height.
 
-The three lists are:
+### 4.1 Tab Bar
 
-- **Viable** — Pokémon eligible for the roulette. Seeded with all 1025 Pokémon in Pokédex order on first load.
+A narrow vertical strip (28px wide) on the left edge of the sidebar contains three stacked buttons:
+
+| Button      | Icon | Action                          |
+|-------------|------|---------------------------------|
+| Collapse    | ‹ / › | Toggle sidebar open/closed     |
+| Lists tab   | 📖   | Switch to the Lists view        |
+| Config tab  | ⚙    | Switch to the Config view       |
+
+The active tab is highlighted. Collapse/expand state persists in `localStorage`.
+
+### 4.2 Lists View
+
+The three lists:
+
+- **Viable** — Pokémon eligible for the roulette.
 - **Guessed** — Pokémon confirmed via the ✓ button.
-- **Removed** — Pokémon excluded from future rolls via the ✕ button.
+- **Failed** — Pokémon excluded via the ✕ button.
 
-Each list occupies one-third of the sidebar height (minus the filter bar). Each list scrolls independently with `overflow-y: auto` and a visible scrollbar on the right. Scroll wheel is supported natively.
+Each list panel has a header that can be clicked to **collapse** or **expand** that list. When collapsed, the panel shrinks to header height only and the remaining panels fill the space. Collapse state persists in `localStorage`. Only one or all can be collapsed simultaneously.
 
-**Entry ordering within each list**: invalid entries (`unknown` and `duplicate`) are always pinned to the top of their list, above all `valid` entries. Within each group (invalid / valid), order is preserved as edited by the user.
+Each list scrolls independently. Invalid entries (`unknown`, `duplicate`) are pinned to the top within their list.
 
----
+**Entry rows**
 
-### 4.1 Editable Text Lists
-
-Each list has two visual modes, toggled by clicking an Edit button (pencil icon) in the list header.
-
-**Row view** (default): each entry rendered as a styled row containing:
-- A small type-color dot on the left (type1 color; dual-type shows a split dot).
+Each row shows:
+- A small type-color dot (split for dual-type).
 - The display name (canonical capitalized form).
-- An error highlight if the entry is `unknown` or `duplicate`.
+- An error indicator for `unknown` or `duplicate` entries.
 
-**Edit mode**: the list becomes a `<textarea>` with one name per line, showing raw strings as stored. On exit (clicking Done or clicking outside), validation runs against the full contents.
+**Edit mode**
 
-**Locking during active game**: when the app is on the Silhouette or Reveal screen, all Edit buttons are visually disabled (greyed out) with a tooltip: *"Return to roulette to edit lists."* The filter bar remains functional. Editing resumes when the user returns to the Roulette screen.
+Each list has an Edit button (✏ icon, rotated 135°) in its header. Clicking:
+- Auto-expands the list if collapsed.
+- Replaces the list body with a `<textarea>`, one name per line.
+- Respects active filters (hidden entries are preserved and merged back on exit).
+- Changes button text to "✓ Done". Edit mode exits only by clicking "Done" — clicking outside the textarea does not exit edit mode.
+- Locking: Edit buttons are disabled while on Silhouette or Reveal screen.
 
-**Paste & validation**
+**Filter bar**
 
-On edit exit, each line is validated:
+Above the lists. Filters are display-only and do not affect the roulette pool.
 
-1. **Normalize**: trim whitespace, collapse internal whitespace.
-2. **Match**: case-insensitive match against names in `pokemon.json`. Leniency rules:
-   - Case-insensitive (`bulbasaur` → Bulbasaur).
-   - Leading/trailing whitespace stripped.
-   - Internal whitespace normalized (multiple spaces/tabs → single space).
-   - Special characters: hyphens, apostrophes, and periods ignored during matching (e.g. `farfetchd` → Farfetch'd, `mr mime` → Mr. Mime, `nidoranf` → Nidoran♀).
-   - Common regional form suffixes recognized: `-galar`, `-alola`, `-hisui`, `-paldea`, etc.
-3. **Assign state**:
+| Filter      | Type         | Behavior                                                            |
+| -------------| --------------| ---------------------------------------------------------------------|
+| Name        | Text input   | Case-insensitive substring match against display name or raw string |
+| Type        | Multi-select | Matches entries where type1 or type2 matches any selected type      |
+| Errors only | Checkbox     | Hides all `valid` entries, shows only `unknown` and `duplicate`     |
 
-| State       | Meaning                                                  | Visual treatment                                                                  |
-|-------------|----------------------------------------------------------|-----------------------------------------------------------------------------------|
-| `valid`     | Matched to a known Pokémon, appears in exactly one list  | Normal display; small type-color dot on the left                                  |
-| `unknown`   | Could not be matched to any known Pokémon                | Row highlighted in amber/yellow; pinned to top of list; excluded from roulette    |
-| `duplicate` | This name appears in more than one list                  | Row highlighted in red/pink; pinned to top of list; excluded from roulette        |
-
-The raw string the user typed is always preserved in the textarea. The canonical display name is shown only in row view.
-
-**Duplicate detection** is cross-list: if "Bulbasaur" appears in both Viable and Guessed, both occurrences are marked `duplicate`.
-
----
-
-### 4.2 Filters
-
-A shared filter bar at the top of the sidebar, above all three lists. Filters are display-only — they do not affect the roulette pool.
-
-| Filter      | Type                  | Behavior                                                                                |
-|-------------|-----------------------|-----------------------------------------------------------------------------------------|
-| Name        | Text input            | Case-insensitive substring match against display name or raw string                     |
-| Type        | Multi-select dropdown | Shows entries where type1 or type2 matches any selected type. Options: all 18 types.   |
-| Errors only | Toggle/checkbox       | When active, hides all `valid` entries — shows only `unknown` and `duplicate` rows      |
-
-Filters combine with AND logic. A "Clear filters" button resets all at once.
-
-Each list header shows entry counts as "Visible / Total" (e.g. "Viable — 12 / 300" when filtered).
-
----
-
-### 4.3 List Management
+Filters combine with AND logic. A "Clear" button resets all filters at once. Each list header shows "Visible / Total" counts.
 
 **Drag and drop**
 
-- Only `valid` entries are draggable. `unknown` and `duplicate` entries have no drag handle and cannot be moved.
-- Entries can be dragged **between lists** and **reordered within a list**.
-- Dropping an entry into a different list is semantically equivalent to the corresponding action button (e.g. dragging from Viable to Guessed = pressing ✓). Lists and `localStorage` update immediately.
-- A drag ghost and a visible drop-target indicator (highlighted gap or zone border) are shown during drag.
-- Dragging is disabled when the app is on the Silhouette or Reveal screen (consistent with edit locking).
+Valid entries can be dragged between lists (equivalent to action buttons). Disabled on Silhouette/Reveal screens.
 
-**Reset all**
+**Validation states**
 
-Clears `pokeroulette_lists` from `localStorage` and re-seeds Viable from `pokemon.json` (all 1025 in Pokédex order), emptying Guessed and Removed. Requires a confirmation prompt. Disabled on Silhouette/Reveal screens.
+| State       | Meaning                                                  | Visual                                              |
+|-------------|----------------------------------------------------------|-----------------------------------------------------|
+| `valid`     | Matched to a known Pokémon, in exactly one list          | Normal; type-color dot                              |
+| `unknown`   | No match found                                           | Amber highlight; pinned top; excluded from roulette |
+| `duplicate` | Appears in more than one list                            | Red highlight; pinned top; excluded from roulette   |
+
+Name matching is lenient: case-insensitive, strips punctuation (hyphens, apostrophes, periods), maps `♀`→`f` and `♂`→`m`.
+
+---
+
+### 4.3 Config View
+
+Accessible via the ⚙ tab. Settings persist in `localStorage` under `pokeroulette_config`.
+
+#### Hints
+
+Controls what is shown on the Silhouette screen. Each hint is configured independently.
+
+| Hint       | Options                      | Default  |
+|------------|------------------------------|----------|
+| Name       | Hidden / Disabled            | Hidden   |
+| Sprite     | Hidden / Visible             | Hidden   |
+| Types      | Visible / Hidden / Disabled  | Hidden   |
+| Generation | Visible / Hidden / Disabled  | Hidden   |
+
+Regardless of silhouette settings, all hints are always shown on the Reveal screen.
+
+#### Generations
+
+Checkboxes for each generation (Gen 1–9). Determines which Pokémon are included when the Reset button is used. All generations selected by default.
+
+#### Import / Export
+
+Encodes and decodes the full app state (lists + config) as a base64 string.
+
+- **Export**: generates a base64-encoded payload and copies it to the clipboard. The payload encodes pokemon IDs (not names) for compactness.
+- **Import**: decodes the base64 string from the textarea, maps IDs back to canonical names, and applies lists and config. Invalid IDs are silently dropped.
+
+Payload format (before base64 encoding):
+```json
+{
+  "version": 2,
+  "lists": { "viable": [1, 4, 7], "guessed": [25], "removed": [] },
+  "config": { "hints": { "name": "hidden", "sprite": "hidden", "types": "hidden", "gen": "hidden" }, "gens": [1, 2, 3, 4, 5, 6, 7, 8, 9] }
+}
+```
 
 ---
 
 ## 5. Transition Animations
 
-| Transition                   | Duration    | Style                          |
-|------------------------------|-------------|--------------------------------|
-| Idle spin                    | Continuous  | ~1 RPM, linear                 |
-| Activation snap              | Instant     | Angular velocity jump          |
-| Active spin deceleration     | Variable    | Cubic ease-out friction        |
-| Roulette → Silhouette        | ~400ms      | Fade                           |
-| Silhouette → Reveal          | ~400ms      | Fade or horizontal card flip   |
-| Action button → Roulette     | ~250ms      | Fade out / fade in             |
+| Transition               | Duration   | Style                       |
+|--------------------------|------------|-----------------------------|
+| Idle spin                | Continuous | ~1 RPM, linear              |
+| Activation snap          | Instant    | Angular velocity jump       |
+| Active spin deceleration | Variable   | Cubic ease-out friction     |
+| Roulette → Silhouette    | ~400ms     | Fade                        |
+| Silhouette → Reveal      | ~250ms     | Fast fade                   |
+| Action button → Roulette | ~250ms     | Fade out / fade in          |
 
-All animations must respect `prefers-reduced-motion: reduce` — when set, all transitions are instant and the idle spin is disabled.
+All animations respect `prefers-reduced-motion: reduce` — when set, transitions are instant and idle spin is disabled.
 
 ---
 
@@ -297,25 +313,22 @@ All animations must respect `prefers-reduced-motion: reduce` — when set, all t
 
 ## 7. Build Script
 
-A Node.js script (`build-pokemon-json.js`) is included in the project root to generate `pokemon.json` from the PokéAPI. Requirements:
+A Node.js script (`build-pokemon-json.js`) generates `pokemon.json` from the PokéAPI.
 
-- **Runtime**: Node.js 18+ (uses built-in `fetch`, no external dependencies).
-- **Output**: writes `pokemon.json` to the project root, overwriting any existing file (idempotent).
-- **Data fetched**: for each Pokémon, retrieves `id`, `name` (English, capitalized), `gen`, `type1`, `type2`, and constructs the `spriteUrl` from the known CDN pattern.
-- **Generation mapping**: derived from the Pokédex ID ranges (Gen 1: 1–151, Gen 2: 152–251, etc.) rather than an additional API call, to keep the script simple.
-- **Progress indication**: logs progress to stdout (e.g. "Fetching 1025 Pokémon... 100/1025") since the full fetch takes time.
-- **Re-runnable**: safe to run again at any time to pick up new Pokémon in future generations. Overwrites cleanly.
+- **Runtime**: Node.js 18+ (built-in `fetch`, no external dependencies).
+- **Output**: writes `pokemon.json` to the project root (idempotent).
+- **Generation mapping**: derived from Pokédex ID ranges (Gen 1: 1–151, Gen 2: 152–251, etc.).
+- **Progress**: logs progress to stdout.
+- **Re-runnable**: safe to run at any time to pick up future generations.
 
 ---
 
-## 8. Out of Scope (v1)
+## 8. Out of Scope
 
-- Mobile or responsive layout (desktop 1024px+ only)
 - User accounts or server-side sync
 - Multiplayer or networked play
-- Pokémon stats, moves, or any gameplay data beyond name, generation, and type
+- Pokémon stats, moves, or gameplay data beyond name, generation, and type
 - Localization (English only)
 - PWA / offline support
-- Runtime fetching of Pokémon metadata (all data is bundled in `pokemon.json`)
-- Sprite caching beyond standard browser cache
+- Runtime fetching of Pokémon metadata
 - Undo/redo for list actions
