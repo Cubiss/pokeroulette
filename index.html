@@ -760,7 +760,7 @@ body {
       <div id="wheel-center-text"></div>
     </div>
     <div id="empty-wheel-msg" style="display:none">
-      No Pokémon in the viable list.<br>Add some to get started.
+      No Pokémon in the roulette list.<br>Add some to get started.
     </div>
   </div>
 
@@ -797,8 +797,8 @@ body {
     </div>
     <div id="reveal-dex"></div>
     <div class="action-buttons">
-      <button class="action-btn btn-confirm" id="btn-confirm" title="Remove from roulette as guessed">✓ Guessed</button>
-      <button class="action-btn btn-remove"  id="btn-remove"  title="Remove from roulette as failed">✕ Failed</button>
+      <button class="action-btn btn-confirm" id="btn-confirm" title="Move to Drawn">✓ Drawn!</button>
+      <button class="action-btn btn-remove"  id="btn-remove"  title="Move to The Pile">✕ To The Pile!</button>
     </div>
     <div id="reveal-dup-warning" style="display:none">⚠ Duplicate — resolves all copies</div>
   </div>
@@ -830,7 +830,7 @@ body {
     <div class="list-panel" id="panel-viable" data-list="viable">
       <div class="list-header" id="header-viable">
         <span class="list-collapse-arrow">▾</span>
-        <span class="list-title">Viable</span>
+        <span class="list-title">Roulette</span>
         <span class="list-count" id="count-viable">0 / 0</span>
         <button class="edit-btn is-pen" id="edit-viable" title="Edit list"><span class="pen-icon">✏</span></button>
       </div>
@@ -839,7 +839,7 @@ body {
     <div class="list-panel" id="panel-guessed" data-list="guessed">
       <div class="list-header" id="header-guessed">
         <span class="list-collapse-arrow">▾</span>
-        <span class="list-title">Guessed</span>
+        <span class="list-title">Drawn</span>
         <span class="list-count" id="count-guessed">0 / 0</span>
         <button class="edit-btn is-pen" id="edit-guessed" title="Edit list"><span class="pen-icon">✏</span></button>
       </div>
@@ -848,7 +848,7 @@ body {
     <div class="list-panel" id="panel-removed" data-list="removed">
       <div class="list-header" id="header-removed">
         <span class="list-collapse-arrow">▾</span>
-        <span class="list-title">Failed</span>
+        <span class="list-title">The Pile</span>
         <span class="list-count" id="count-removed">0 / 0</span>
         <button class="edit-btn is-pen" id="edit-removed" title="Edit list"><span class="pen-icon">✏</span></button>
       </div>
@@ -1790,7 +1790,7 @@ function showReveal() {
 
   const dupWarning = document.getElementById('reveal-dup-warning');
   if (selectedPokemonIsDuplicate) {
-    const listNames = { viable: 'Viable', guessed: 'Guessed', removed: 'Failed' };
+    const listNames = { viable: 'Roulette', guessed: 'Drawn', removed: 'The Pile' };
     const found = Object.entries(listNames)
       .filter(([key]) => lists[key].some(raw => matchPokemon(raw)?.id === p.id))
       .map(([, label]) => label);
