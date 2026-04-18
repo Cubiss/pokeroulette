@@ -1,6 +1,6 @@
 # Poké Roulette — Project Specification
 
-Version 1.3
+Version 1.4
 
 ---
 
@@ -8,14 +8,14 @@ Version 1.3
 
 Poké Roulette is a single-page web application for randomly selecting a Pokémon from a configurable pool. It is primarily intended as a guessing-game aid: one player spins the roulette and sees the result; another player tries to guess the Pokémon from a silhouette before the full reveal.
 
-|                      |                                                                                                                                                                                                                           |
-|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Tech stack**       | Plain HTML + CSS + JavaScript (no framework). Single `.html` file plus a `pokemon.json` data file.                                                                                                                        |
-| **Data source**      | Bundled `pokemon.json` (see Section 2). No runtime API calls for Pokémon data.                                                                                                                                            |
-| **Sprites**          | Official artwork via PokéAPI CDN, fetched at display time by ID.                                                                                                                                                          |
-| **Persistence**      | `localStorage` — all lists and settings survive page refresh.                                                                                                                                                             |
-| **Pokémon pool**     | All generations (currently 1025 Pokémon as of Gen 9).                                                                                                                                                                     |
-| **Target platform**  | Desktop browser primarily. Layout is fully responsive: roulette wheel, silhouette, and reveal screens all scale to fit the viewport. The sidebar stays fixed on the right. No minimum viewport enforced.                  |
+|                     |                                                                                                                                                                                                                                 |
+| ---------------------| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Tech stack**      | Plain HTML + CSS + JavaScript (no framework). Single `.html` file plus a `pokemon.json` data file.                                                                                                                              |
+| **Data source**     | Bundled `pokemon.json` (see Section 2). No runtime API calls for Pokémon data.                                                                                                                                                  |
+| **Sprites**         | Official artwork via PokéAPI CDN, fetched at display time by ID.                                                                                                                                                                |
+| **Persistence**     | `localStorage` — all lists and settings survive page refresh.                                                                                                                                                                   |
+| **Pokémon pool**    | All generations (currently 1025 Pokémon as of Gen 9).                                                                                                                                                                           |
+| **Target platform** | Desktop browser primarily. Layout is fully responsive: roulette wheel, silhouette, and reveal screens all scale to fill available viewport space uniformly. The sidebar stays fixed on the right. No minimum viewport enforced. |
 
 ---
 
@@ -255,6 +255,8 @@ Controls what is shown on the Silhouette screen. Each hint is configured indepen
 | Sprite     | Hidden / Visible             | Hidden   |
 | Types      | Visible / Hidden / Disabled  | Hidden   |
 | Generation | Visible / Hidden / Disabled  | Hidden   |
+
+Hint config changes take effect immediately: if the Silhouette screen is currently active, it re-renders in real time to reflect the new settings (reveal state resets to match the new config).
 
 Regardless of silhouette settings, all hints are always shown on the Reveal screen.
 

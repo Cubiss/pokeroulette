@@ -61,12 +61,15 @@ body {
 }
 
 /* ── ROULETTE SCREEN ── */
-#roulette-screen { gap: 0; }
+#roulette-screen { gap: clamp(6px, 1.5vmin, 14px); padding: 16px; }
 
 #wheel-container {
   position: relative;
-  width: min(520px, calc(100% - 40px), calc(100vh - 80px));
+  flex: 1;
+  min-height: 0;
   aspect-ratio: 1;
+  max-width: 100%;
+  width: auto;
   cursor: pointer;
   user-select: none;
 }
@@ -1036,6 +1039,11 @@ function switchTab(name) {
   document.getElementById('view-config').style.display = name === 'config' ? 'flex' : 'none';
   document.getElementById('tab-lists').classList.toggle('active', name === 'lists');
   document.getElementById('tab-config').classList.toggle('active', name === 'config');
+  if (sidebarCollapsed) {
+    sidebarCollapsed = false;
+    localStorage.setItem(SIDEBAR_KEY, false);
+    applySidebarState();
+  }
 }
 
 function exportData() {
@@ -1480,6 +1488,11 @@ function showSilhouette(p) {
   showScreen('silhouette');
 }
 
+function refreshSilhouetteHints() {
+  if (!selectedPokemon || currentScreen !== 'silhouette') return;
+  showSilhouette(selectedPokemon);
+}
+
 function showReveal() {
   const p = selectedPokemon;
   document.getElementById('reveal-name').textContent = p.name;
@@ -1868,6 +1881,7 @@ function bindEvents() {
         document.querySelectorAll(`input[name="hint-${key}"]`).forEach(r => {
           r.closest('.hint-radio-label').classList.toggle('selected', r === radio);
         });
+        refreshSilhouetteHints();
       });
     });
   }
