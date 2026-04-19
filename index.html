@@ -217,26 +217,26 @@ body {
   user-select: none;
 }
 
-/* ── REVEAL SCREEN ── */
+/* ── DETAIL SCREEN ── */
 /* both screens share identical layout so the sprite occupies the same space */
 #silhouette-screen,
-#reveal-screen {
+#detail-screen {
   gap: clamp(6px, 1.5vmin, 14px);
   padding: 16px;
 }
 
-#reveal-name-row {
+#detail-name-row {
   display: flex;
   align-items: center;
   width: 100%;
 }
 
-#reveal-name-row #reveal-name {
+#detail-name-row #detail-name {
   flex: 1;
   text-align: center;
 }
 
-#btn-close-reveal,
+#btn-close-detail,
 #btn-bio {
   width: 28px;
   height: 28px;
@@ -252,11 +252,11 @@ body {
   cursor: pointer;
   line-height: 1;
 }
-#btn-close-reveal:hover,
+#btn-close-detail:hover,
 #btn-bio:hover { color: var(--text); border-color: var(--text-dim); }
 #btn-bio.active { border-color: var(--text-dim); color: var(--text); }
 
-#reveal-bio {
+#detail-bio {
   display: none;
   flex-direction: column;
   gap: 6px;
@@ -267,16 +267,16 @@ body {
   border-radius: 8px;
   font-size: clamp(0.75rem, 1.8vmin, 0.85rem);
 }
-#reveal-bio.visible { display: flex; }
-#reveal-bio .bio-row {
+#detail-bio.visible { display: flex; }
+#detail-bio .bio-row {
   display: flex;
   justify-content: space-between;
   gap: 12px;
 }
-#reveal-bio .bio-label { color: var(--text-dim); }
-#reveal-bio .bio-value { font-weight: 600; text-align: right; }
+#detail-bio .bio-label { color: var(--text-dim); }
+#detail-bio .bio-value { font-weight: 600; text-align: right; }
 
-#reveal-dup-warning {
+#detail-dup-warning {
   font-size: 0.75rem;
   color: var(--remove);
   text-align: center;
@@ -615,8 +615,8 @@ body {
 .hint-reveal-btn:hover { color: var(--text); border-color: var(--text-dim); }
 
 /* ── SILHOUETTE HINTS LARGER + ABOVE GLOW ── */
-#silhouette-screen .type-badge, #reveal-screen .type-badge { font-size: 0.9rem; padding: 5px 14px; }
-#silhouette-screen .gen-label,  #reveal-screen .gen-label  { font-size: 0.9rem; padding: 5px 14px; }
+#silhouette-screen .type-badge, #detail-screen .type-badge { font-size: 0.9rem; padding: 5px 14px; }
+#silhouette-screen .gen-label,  #detail-screen .gen-label  { font-size: 0.9rem; padding: 5px 14px; }
 
 #filter-bar {
   padding: 10px 12px;
@@ -880,27 +880,27 @@ body {
     </div>
   </div>
 
-  <!-- Reveal Screen -->
-  <div id="reveal-screen" class="screen">
-    <div id="reveal-name-row">
+  <!-- Detail Screen -->
+  <div id="detail-screen" class="screen">
+    <div id="detail-name-row">
       <button id="btn-bio" title="Biology">📖</button>
-      <div id="reveal-name" class="pokemon-display-name"></div>
-      <button id="btn-close-reveal" title="Return to roulette">✕</button>
+      <div id="detail-name" class="pokemon-display-name"></div>
+      <button id="btn-close-detail" title="Return to roulette">✕</button>
     </div>
-    <div class="sprite-wrapper" id="reveal-wrapper">
-      <img id="reveal-img" src="" alt="">
+    <div class="sprite-wrapper" id="detail-wrapper">
+      <img id="detail-img" src="" alt="">
     </div>
-    <div id="reveal-bio"></div>
+    <div id="detail-bio"></div>
     <div class="card-meta">
-      <span id="reveal-gen" class="gen-label"></span>
-      <div id="reveal-types" class="type-badges"></div>
+      <span id="detail-gen" class="gen-label"></span>
+      <div id="detail-types" class="type-badges"></div>
     </div>
-    <div id="reveal-dex"></div>
+    <div id="detail-dex"></div>
     <div class="action-buttons">
-      <button class="action-btn btn-confirm" id="btn-confirm" title="Move to Drawn">✓ Drawn!</button>
-      <button class="action-btn btn-remove"  id="btn-remove"  title="Move to The Pile">✕ To The Pile!</button>
+      <button class="action-btn btn-remove"  id="btn-remove"  title="Move to The Pile">To The Pile!</button>
+      <button class="action-btn btn-confirm" id="btn-confirm" title="Move to Drawn">Drawn!</button>
     </div>
-    <div id="reveal-dup-warning" style="display:none"></div>
+    <div id="detail-dup-warning" style="display:none"></div>
   </div>
 
   <!-- Duplicate Resolver Screen -->
@@ -911,26 +911,26 @@ body {
       <button id="btn-close-dup" title="Return to roulette">✕</button>
     </div>
     <div id="dup-columns">
-      <div class="dup-column" id="dup-col-viable">
+      <div class="dup-column" id="dup-col-pool">
         <div class="dup-col-header">
           <span>Roulette</span>
-          <button class="dup-select-all" data-list="viable">Select All</button>
+          <button class="dup-select-all" data-list="pool">Select All</button>
         </div>
-        <div class="dup-col-body" id="dup-body-viable"></div>
+        <div class="dup-col-body" id="dup-body-pool"></div>
       </div>
-      <div class="dup-column" id="dup-col-guessed">
+      <div class="dup-column" id="dup-col-done">
         <div class="dup-col-header">
           <span>Drawn</span>
-          <button class="dup-select-all" data-list="guessed">Select All</button>
+          <button class="dup-select-all" data-list="done">Select All</button>
         </div>
-        <div class="dup-col-body" id="dup-body-guessed"></div>
+        <div class="dup-col-body" id="dup-body-done"></div>
       </div>
-      <div class="dup-column" id="dup-col-removed">
+      <div class="dup-column" id="dup-col-todo">
         <div class="dup-col-header">
           <span>The Pile</span>
-          <button class="dup-select-all" data-list="removed">Select All</button>
+          <button class="dup-select-all" data-list="todo">Select All</button>
         </div>
-        <div class="dup-col-body" id="dup-body-removed"></div>
+        <div class="dup-col-body" id="dup-body-todo"></div>
       </div>
     </div>
     <button id="btn-resolve" class="action-btn btn-confirm">Resolve</button>
@@ -960,32 +960,32 @@ body {
   </div>
 
   <div class="lists-container">
-    <div class="list-panel" id="panel-viable" data-list="viable">
-      <div class="list-header" id="header-viable">
+    <div class="list-panel" id="panel-pool" data-list="pool">
+      <div class="list-header" id="header-pool">
         <span class="list-collapse-arrow">▾</span>
         <span class="list-title">Roulette</span>
-        <span class="list-count" id="count-viable">0 / 0</span>
-        <button class="edit-btn is-pen" id="edit-viable" title="Edit list"><span class="pen-icon">✏</span></button>
+        <span class="list-count" id="count-pool">0 / 0</span>
+        <button class="edit-btn is-pen" id="edit-pool" title="Edit list"><span class="pen-icon">✏</span></button>
       </div>
-      <div class="list-body" id="body-viable"></div>
+      <div class="list-body" id="body-pool"></div>
     </div>
-    <div class="list-panel" id="panel-guessed" data-list="guessed">
-      <div class="list-header" id="header-guessed">
+    <div class="list-panel" id="panel-done" data-list="done">
+      <div class="list-header" id="header-done">
         <span class="list-collapse-arrow">▾</span>
         <span class="list-title">Drawn</span>
-        <span class="list-count" id="count-guessed">0 / 0</span>
-        <button class="edit-btn is-pen" id="edit-guessed" title="Edit list"><span class="pen-icon">✏</span></button>
+        <span class="list-count" id="count-done">0 / 0</span>
+        <button class="edit-btn is-pen" id="edit-done" title="Edit list"><span class="pen-icon">✏</span></button>
       </div>
-      <div class="list-body" id="body-guessed"></div>
+      <div class="list-body" id="body-done"></div>
     </div>
-    <div class="list-panel" id="panel-removed" data-list="removed">
-      <div class="list-header" id="header-removed">
+    <div class="list-panel" id="panel-todo" data-list="todo">
+      <div class="list-header" id="header-todo">
         <span class="list-collapse-arrow">▾</span>
         <span class="list-title">The Pile</span>
-        <span class="list-count" id="count-removed">0 / 0</span>
-        <button class="edit-btn is-pen" id="edit-removed" title="Edit list"><span class="pen-icon">✏</span></button>
+        <span class="list-count" id="count-todo">0 / 0</span>
+        <button class="edit-btn is-pen" id="edit-todo" title="Edit list"><span class="pen-icon">✏</span></button>
       </div>
-      <div class="list-body" id="body-removed"></div>
+      <div class="list-body" id="body-todo"></div>
     </div>
   </div>
 
@@ -1074,19 +1074,20 @@ const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').mat
 // ── STATE ──
 let allPokemon = [];           // full list from pokemon.json
 let pokemonByName = new Map(); // normalized name -> pokemon obj
-let lists = { viable: [], guessed: [], removed: [] }; // arrays of raw strings
-let validatedEntries = { viable: [], guessed: [], removed: [] }; // [{raw, status, pokemon}]
+let lists = { pool: [], done: [], todo: [] }; // arrays of raw strings
+let validatedEntries = { pool: [], done: [], todo: [] }; // [{raw, status, pokemon}]
 
-let currentScreen = 'roulette'; // 'roulette' | 'silhouette' | 'reveal'
+let currentScreen = 'roulette'; // 'roulette' | 'silhouette' | 'detail' | 'duplicate'
 let selectedPokemon = null;
 let selectedPokemonIsDuplicate = false;
+let detailOpenedFromList = false;
 let duplicatePokemon = null;
 let duplicateSelected = new Set(); // keys: "listName:rawIndex"
 let revealState = { name: false, types: false, gen: false };
-let editMode = { viable: false, guessed: false, removed: false };
-let editModeFilteredOut = { viable: [], guessed: [], removed: [] };
+let editMode = { pool: false, done: false, todo: false };
+let editModeFilteredOut = { pool: [], done: [], todo: [] };
 let sidebarCollapsed = false;
-let panelCollapsed = { viable: false, guessed: false, removed: false };
+let panelCollapsed = { pool: false, done: false, todo: false };
 let currentTab = 'lists';
 let config = {
   hints: { name: 'hidden', sprite: 'hidden', types: 'hidden', gen: 'hidden', dex: 'hidden' },
@@ -1144,18 +1145,17 @@ function loadLists() {
   if (raw) {
     try {
       lists = JSON.parse(raw);
-      // ensure all three keys exist
-      lists.viable   = lists.viable   || [];
-      lists.guessed  = lists.guessed  || [];
-      lists.removed  = lists.removed  || [];
+      lists.pool = lists.pool || [];
+      lists.done = lists.done || [];
+      lists.todo = lists.todo || [];
       return;
     } catch(e) {}
   }
   // First load: seed from pokemon.json
   lists = {
-    viable:  allPokemon.map(p => p.name),
-    guessed: [],
-    removed: [],
+    pool:  allPokemon.map(p => p.name),
+    done: [],
+    todo: [],
   };
   saveLists();
 }
@@ -1196,7 +1196,7 @@ function loadPanelCollapseState() {
     const raw = localStorage.getItem(COLLAPSE_KEY);
     if (raw) Object.assign(panelCollapsed, JSON.parse(raw));
   } catch(e) {}
-  for (const listName of ['viable', 'guessed', 'removed']) {
+  for (const listName of ['pool', 'done', 'todo']) {
     applyPanelCollapse(listName);
   }
 }
@@ -1286,19 +1286,19 @@ function switchTab(name) {
 
 function exportData() {
   const idLists = {};
-  for (const ln of ['viable', 'guessed', 'removed']) {
+  for (const ln of ['pool', 'done', 'todo']) {
     idLists[ln] = validatedEntries[ln]
       .filter(e => e.status === 'valid')
       .map(e => e.pokemon.id);
   }
-  return btoa(JSON.stringify({ version: 2, lists: idLists, config }));
+  return btoa(JSON.stringify({ version: 3, lists: idLists, config }));
 }
 
 function importData(str) {
   try {
     const data = JSON.parse(atob(str.trim()));
     if (data.lists) {
-      for (const ln of ['viable', 'guessed', 'removed']) {
+      for (const ln of ['pool', 'done', 'todo']) {
         lists[ln] = (data.lists[ln] || [])
           .map(id => allPokemon.find(p => p.id === id)?.name)
           .filter(Boolean);
@@ -1337,7 +1337,7 @@ function matchPokemon(raw) {
 function validateAll() {
   // First pass: resolve each raw to a pokemon
   const allResolved = {};
-  for (const listName of ['viable', 'guessed', 'removed']) {
+  for (const listName of ['pool', 'done', 'todo']) {
     allResolved[listName] = lists[listName].map(raw => ({
       raw,
       pokemon: matchPokemon(raw),
@@ -1346,7 +1346,7 @@ function validateAll() {
 
   // Find duplicates across all lists
   const seenNames = new Map(); // normalized -> [{listName, idx}]
-  for (const listName of ['viable', 'guessed', 'removed']) {
+  for (const listName of ['pool', 'done', 'todo']) {
     for (let i = 0; i < allResolved[listName].length; i++) {
       const { pokemon } = allResolved[listName][i];
       if (!pokemon) continue;
@@ -1362,7 +1362,7 @@ function validateAll() {
   }
 
   // Second pass: assign status
-  for (const listName of ['viable', 'guessed', 'removed']) {
+  for (const listName of ['pool', 'done', 'todo']) {
     validatedEntries[listName] = allResolved[listName].map(({ raw, pokemon }) => {
       let status;
       if (!pokemon) {
@@ -1383,13 +1383,13 @@ function validateAll() {
   }
 }
 
-function getValidViable() {
-  return validatedEntries.viable.filter(e => e.status === 'valid' || e.status === 'duplicate').map(e => e.pokemon);
+function getValidPool() {
+  return validatedEntries.pool.filter(e => e.status === 'valid' || e.status === 'duplicate').map(e => e.pokemon);
 }
 
 // ── WHEEL BUILDING ──
 function buildWheel() {
-  const valid = getValidViable();
+  const valid = getValidPool();
   const group = document.getElementById('wheel-group');
   const defs = document.getElementById('wheel-defs');
   const centerText = document.getElementById('wheel-center-text');
@@ -1527,7 +1527,7 @@ function animLoop(ts) {
 }
 
 function readPointerWinner() {
-  const valid = getValidViable();
+  const valid = getValidPool();
   if (valid.length === 0) return null;
   const anglePerSlice = (2 * Math.PI) / valid.length;
   // Pointer is at 12 o'clock. In unrotated wheel space, that maps to angle (-wheelAngle).
@@ -1552,7 +1552,7 @@ function settleWheel() {
 
 // ── SPIN ACTIVATION ──
 function activateSpin() {
-  const valid = getValidViable();
+  const valid = getValidPool();
   if (valid.length === 0) return;
 
   if (spinState === 'idle') {
@@ -1578,7 +1578,7 @@ function showScreen(name) {
   screens.forEach(s => { s.classList.remove('active'); });
 
   const target = document.getElementById(`${name}-screen`);
-  if (name === 'reveal') {
+  if (name === 'detail') {
     target.classList.add('fast-transition');
   } else {
     target.classList.remove('fast-transition');
@@ -1591,7 +1591,7 @@ function showScreen(name) {
 function updateEditLock() {
   const locked = currentScreen !== 'roulette';
   const tooltip = locked ? 'Return to roulette to edit lists' : 'Edit list';
-  for (const name of ['viable', 'guessed', 'removed']) {
+  for (const name of ['pool', 'done', 'todo']) {
     const btn = document.getElementById(`edit-${name}`);
     btn.disabled = locked;
     btn.title = tooltip;
@@ -1719,12 +1719,13 @@ function revealNextHint() {
 }
 
 function checkAllRevealed() {
-  if (revealState.name && revealState.sprite && revealState.types && revealState.gen && revealState.dex) showReveal();
+  if (revealState.name && revealState.sprite && revealState.types && revealState.gen && revealState.dex) showDetail();
 }
 
 function showSilhouette(p) {
   selectedPokemon = p;
   selectedPokemonIsDuplicate = false;
+  detailOpenedFromList = false;
 
   revealState = {
     name:   config.hints.name   === 'hidden' ? false : true,
@@ -1885,11 +1886,12 @@ function refreshSilhouetteHints() {
   showSilhouette(selectedPokemon);
 }
 
-function showReveal() {
+function showDetail() {
   const p = selectedPokemon;
-  document.getElementById('reveal-name').textContent = p.name;
+  document.getElementById('detail-name').textContent = p.name;
+  document.getElementById('btn-confirm').style.display = detailOpenedFromList ? '' : 'none';
 
-  const img = document.getElementById('reveal-img');
+  const img = document.getElementById('detail-img');
   img.src = p.spriteUrl;
   img.alt = p.name;
   img.style.filter = '';
@@ -1897,7 +1899,7 @@ function showReveal() {
   const c1 = TYPE_COLORS[p.type1] || '#888';
   const c2 = p.type2 ? (TYPE_COLORS[p.type2] || '#888') : null;
 
-  const typesEl = document.getElementById('reveal-types');
+  const typesEl = document.getElementById('detail-types');
   typesEl.innerHTML = '';
   const b1 = document.createElement('span');
   b1.className = 'type-badge';
@@ -1912,20 +1914,20 @@ function showReveal() {
     typesEl.appendChild(b2);
   }
 
-  document.getElementById('reveal-gen').textContent = `Gen ${p.gen}`;
+  document.getElementById('detail-gen').textContent = `Gen ${p.gen}`;
 
-  const revealDexEl = document.getElementById('reveal-dex');
-  revealDexEl.className = 'dex-entry';
-  fetchDexEntry(p, revealDexEl);
+  const detailDexEl = document.getElementById('detail-dex');
+  detailDexEl.className = 'dex-entry';
+  fetchDexEntry(p, detailDexEl);
 
-  const bioEl = document.getElementById('reveal-bio');
+  const bioEl = document.getElementById('detail-bio');
   bioEl.classList.remove('visible');
   bioEl.innerHTML = '';
   document.getElementById('btn-bio').classList.remove('active');
 
-  const dupWarning = document.getElementById('reveal-dup-warning');
+  const dupWarning = document.getElementById('detail-dup-warning');
   if (selectedPokemonIsDuplicate) {
-    const listNames = { viable: 'Roulette', guessed: 'Drawn', removed: 'The Pile' };
+    const listNames = { pool: 'Roulette', done: 'Drawn', todo: 'The Pile' };
     const found = Object.entries(listNames)
       .filter(([key]) => lists[key].some(raw => matchPokemon(raw)?.id === p.id))
       .map(([, label]) => label);
@@ -1936,12 +1938,12 @@ function showReveal() {
     dupWarning.style.display = 'none';
   }
 
-  showScreen('reveal');
+  showScreen('detail');
 }
 
 function getAllDuplicatePokemon() {
   const inLists = new Map(); // pokemonId -> Set of listNames
-  for (const ln of ['viable', 'guessed', 'removed']) {
+  for (const ln of ['pool', 'done', 'todo']) {
     for (const raw of lists[ln]) {
       const p = matchPokemon(raw);
       if (!p) continue;
@@ -1968,7 +1970,7 @@ function showDuplicateResolver() {
 function renderDuplicateResolver() {
   const dupPokemon = getAllDuplicatePokemon();
 
-  for (const ln of ['viable', 'guessed', 'removed']) {
+  for (const ln of ['pool', 'done', 'todo']) {
     const body = document.getElementById(`dup-body-${ln}`);
     body.innerHTML = '';
 
@@ -2026,7 +2028,7 @@ function resolveDuplicate() {
   for (const p of dupPokemon) {
     const anySelected = [...duplicateSelected].some(k => k.startsWith(`${p.id}:`));
     if (!anySelected) continue;
-    for (const ln of ['viable', 'guessed', 'removed']) {
+    for (const ln of ['pool', 'done', 'todo']) {
       const toKeep = new Set();
       lists[ln].forEach((raw, idx) => {
         if (matchPokemon(raw)?.id === p.id && duplicateSelected.has(`${p.id}:${ln}:${idx}`))
@@ -2046,6 +2048,7 @@ function resolveDuplicate() {
 
 function returnToRoulette() {
   selectedPokemonIsDuplicate = false;
+  detailOpenedFromList = false;
   document.querySelectorAll('.entry-row.active').forEach(r => r.classList.remove('active'));
   showScreen('roulette');
   buildWheel();
@@ -2059,7 +2062,7 @@ function returnToRoulette() {
 // ── LIST ACTIONS ──
 function movePokemon(p, targetList) {
   // Remove from all lists
-  for (const ln of ['viable', 'guessed', 'removed']) {
+  for (const ln of ['pool', 'done', 'todo']) {
     lists[ln] = lists[ln].filter(raw => {
       const matched = matchPokemon(raw);
       return !matched || matched.id !== p.id;
@@ -2073,7 +2076,7 @@ function movePokemon(p, targetList) {
 
 // ── SIDEBAR RENDERING ──
 function renderSidebar() {
-  for (const listName of ['viable', 'guessed', 'removed']) {
+  for (const listName of ['pool', 'done', 'todo']) {
     if (editMode[listName]) continue; // don't re-render while editing
     renderList(listName);
   }
@@ -2137,7 +2140,8 @@ function renderList(listName) {
           row.classList.add('active');
           selectedPokemon = entry.pokemon;
           selectedPokemonIsDuplicate = entry.status === 'duplicate';
-          showReveal();
+          detailOpenedFromList = true;
+          showDetail();
         });
       }
     }
@@ -2393,16 +2397,16 @@ function bindEvents() {
 
   // Reveal all button
   document.getElementById('btn-reveal-all').addEventListener('click', () => {
-    showReveal();
+    showDetail();
   });
 
   // Action buttons
   document.getElementById('btn-confirm').addEventListener('click', () => {
-    movePokemon(selectedPokemon, 'guessed');
+    movePokemon(selectedPokemon, 'done');
     returnToRoulette();
   });
   document.getElementById('btn-bio').addEventListener('click', () => {
-    const bioEl = document.getElementById('reveal-bio');
+    const bioEl = document.getElementById('detail-bio');
     const btn = document.getElementById('btn-bio');
     const showing = bioEl.classList.toggle('visible');
     btn.classList.toggle('active', showing);
@@ -2410,11 +2414,11 @@ function bindEvents() {
     else if (showing) renderBio(bioEl, bioCache.get(selectedPokemon.id));
   });
 
-  document.getElementById('btn-close-reveal').addEventListener('click', () => {
+  document.getElementById('btn-close-detail').addEventListener('click', () => {
     returnToRoulette();
   });
   document.getElementById('btn-remove').addEventListener('click', () => {
-    movePokemon(selectedPokemon, 'removed');
+    movePokemon(selectedPokemon, 'todo');
     returnToRoulette();
   });
 
@@ -2452,17 +2456,17 @@ function bindEvents() {
     } else if (currentScreen === 'silhouette') {
       revealNextHint();
     }
-    // disabled on reveal
+    // disabled on detail screen
   });
 
   // Edit buttons + header collapse toggle
-  for (const listName of ['viable', 'guessed', 'removed']) {
+  for (const listName of ['pool', 'done', 'todo']) {
     document.getElementById(`edit-${listName}`).addEventListener('click', (e) => {
       e.stopPropagation();
       if (editMode[listName]) {
         exitEditMode(listName);
       } else {
-        for (const ln of ['viable', 'guessed', 'removed']) {
+        for (const ln of ['pool', 'done', 'todo']) {
           if (ln !== listName && editMode[ln]) exitEditMode(ln);
         }
         enterEditMode(listName);
@@ -2550,9 +2554,9 @@ function bindEvents() {
     if (!confirm('Reset all lists? This cannot be undone.')) return;
     const selectedGens = new Set(config.gens || []);
     lists = {
-      viable:  allPokemon.filter(p => selectedGens.size === 0 || selectedGens.has(p.gen)).map(p => p.name),
-      guessed: [],
-      removed: [],
+      pool:  allPokemon.filter(p => selectedGens.size === 0 || selectedGens.has(p.gen)).map(p => p.name),
+      done: [],
+      todo: [],
     };
     saveLists();
     validateAll();
