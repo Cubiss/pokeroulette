@@ -9,12 +9,12 @@
 
 :root {
   --sidebar-width: 320px;
-  --bg: #1a1a2e;
-  --surface: #16213e;
-  --surface2: #0f3460;
-  --text: #e0e0e0;
-  --text-dim: #888;
-  --border: #2a2a4a;
+  --bg: #a8c832;
+  --surface: #bcd848;
+  --surface2: #cee460;
+  --text: #1a3004;
+  --text-dim: #4a6a10;
+  --border: #88a81e;
   --confirm: #27C76A;
   --return: #AAAAAA;
   --remove: #E24B4A;
@@ -429,6 +429,7 @@ body {
 }
 .action-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
 .action-btn:active { transform: translateY(0); }
+.action-btn:disabled { opacity: 0.35; cursor: not-allowed; filter: none; transform: none; }
 .btn-confirm { background: var(--confirm); }
 .btn-return  { background: var(--return); }
 .btn-remove  { background: var(--remove); }
@@ -521,6 +522,123 @@ body {
   gap: 16px;
   min-width: 0;
 }
+
+/* ── ONLINE PANEL ── */
+.online-section { display: flex; flex-direction: column; gap: 8px; }
+.online-section-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-dim); }
+.online-tabs { display: flex; gap: 4px; margin-bottom: 4px; }
+.online-tab { flex: 1; padding: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; }
+.online-tab.active { background: rgba(255,255,255,0.12); color: var(--text); }
+.online-field { display: flex; flex-direction: column; gap: 4px; }
+.online-label { font-size: 0.75rem; color: var(--text-dim); }
+.online-input { width: 100%; padding: 6px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 0.85rem; }
+.online-input:focus { outline: none; border-color: rgba(255,255,255,0.3); }
+.online-btn { padding: 6px 10px; border-radius: 4px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+.online-btn-primary { background: var(--confirm); color: #000; }
+.online-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.online-btn-danger { background: var(--remove); color: #fff; }
+.online-btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.online-error { color: var(--remove); font-size: 0.8rem; min-height: 1rem; }
+.online-greeting { font-size: 0.85rem; color: var(--text-dim); }
+.online-greeting b { color: var(--text); }
+.online-divider { border: none; border-top: 1px solid var(--border); }
+.online-room-header { display: flex; align-items: center; gap: 6px; }
+.online-room-code { font-weight: 700; font-size: 0.9rem; letter-spacing: 0.05em; }
+.online-conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #888; flex-shrink: 0; }
+.online-conn-dot.green { background: var(--confirm); }
+.online-conn-dot.amber { background: #F8D030; }
+.online-role-badge { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 5px; border-radius: 3px; }
+.role-host { background: #7038F8; color: #fff; }
+.role-moderator { background: #6890F0; color: #fff; }
+.role-guest { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+.online-member-row { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; padding: 3px 0; }
+.online-member-name { flex: 1; }
+.online-member-you { color: var(--text-dim); font-size: 0.75rem; }
+.online-member-menu { position: relative; }
+.online-member-menu-btn { padding: 1px 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; }
+.online-member-menu-btn:hover { color: var(--text); }
+.online-dropdown { position: absolute; right: 0; top: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; z-index: 100; min-width: 110px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+.online-dropdown-item { display: block; width: 100%; padding: 6px 10px; font-size: 0.82rem; text-align: left; background: none; border: none; color: var(--text); cursor: pointer; }
+.online-dropdown-item:hover { background: rgba(255,255,255,0.08); }
+.online-copy-btn { padding: 2px 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--text-dim); cursor: pointer; font-size: 0.75rem; }
+.online-copy-btn:hover { color: var(--text); }
+.online-link-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; text-decoration: underline; padding: 0; }
+.online-link-btn:hover { color: var(--text); }
+.online-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: flex; align-items: center; justify-content: center; }
+.online-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; width: 280px; display: flex; flex-direction: column; gap: 12px; }
+.online-modal-title { font-weight: 700; font-size: 0.9rem; }
+.online-notification { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 16px; font-size: 0.85rem; z-index: 300; animation: notif-fade 3s forwards; pointer-events: none; }
+@keyframes notif-fade { 0%,70%{opacity:1} 100%{opacity:0} }
+
+#room-indicator {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+#room-indicator .room-ind-code { font-weight: 700; color: var(--text); letter-spacing: 0.04em; }
+#room-indicator .room-ind-role { margin-left: auto; }
+
+/* ── THEME ── */
+#theme-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.theme-swatch {
+  flex: 1 1 calc(33% - 6px);
+  min-width: 55px;
+  padding: 5px 4px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.theme-swatch:hover { filter: brightness(1.25); }
+#theme-pickers { display: flex; flex-direction: column; gap: 6px; }
+.color-picker-row { display: flex; align-items: center; gap: 6px; }
+.color-picker-label { flex: 1; font-size: 0.78rem; color: var(--text-dim); }
+.color-picker-swatch {
+  width: 26px; height: 26px; flex-shrink: 0;
+  border: 1px solid var(--border); border-radius: 4px;
+  cursor: pointer;
+}
+.color-picker-hex { width: 76px; flex-shrink: 0; font-size: 0.78rem; font-family: monospace; }
+
+/* ── CUSTOM COLOR PICKER ── */
+.cp-popup {
+  position: fixed; z-index: 9999;
+  width: 210px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.cp-preview {
+  height: 28px; border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.cp-row { display: flex; flex-direction: column; gap: 3px; }
+.cp-row label { font-size: 0.7rem; color: var(--text-dim); display: flex; justify-content: space-between; }
+.cp-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 10px; border-radius: 5px;
+  outline: none; cursor: pointer; border: 1px solid var(--border);
+}
+.cp-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px;
+  border-radius: 50%; background: #fff;
+  border: 2px solid rgba(0,0,0,0.4); cursor: pointer;
+}
+.cp-slider::-moz-range-thumb {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; border: 2px solid rgba(0,0,0,0.4); cursor: pointer;
+}
+.cp-hex-row { display: flex; gap: 6px; align-items: center; }
+.cp-hex-row input { flex: 1; font-family: monospace; font-size: 0.78rem; }
 
 /* ── CONFIG PANEL ── */
 .config-section { display: flex; flex-direction: column; gap: 8px; }
@@ -837,6 +955,19 @@ body {
 #reset-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 /* ── REDUCED MOTION ── */
+@keyframes idle-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+#wheel-group {
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform;
+}
+#wheel-group.idle-spinning {
+  animation: idle-spin 60s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .screen { transition: none !important; }
   .action-btn { transition: none !important; }
@@ -941,13 +1072,16 @@ body {
 <aside id="sidebar">
   <div id="sidebar-tabbar">
     <button id="sidebar-toggle" title="Collapse sidebar">›</button>
-    <button class="tab-btn active" id="tab-lists" title="Lists">≡</button>
+    <button class="tab-btn active" id="tab-lists" title="Lists">📚</button>
+    <button class="tab-btn" id="tab-online" title="Online">🌍</button>
+    <div style="flex:1"></div>
     <button class="tab-btn" id="tab-config" title="Config">⚙</button>
   </div>
   <div id="sidebar-content">
 
   <!-- Lists view -->
   <div id="view-lists">
+  <div id="room-indicator" style="display:none"></div>
   <div id="filter-bar">
     <input type="text" id="filter-name" placeholder="Filter by name…">
     <div id="filter-row2">
@@ -1040,6 +1174,11 @@ body {
       <div id="gen-checkboxes"></div>
     </div>
     <div class="config-section">
+      <div class="config-section-title">Theme</div>
+      <div id="theme-presets"></div>
+      <div id="theme-pickers"></div>
+    </div>
+    <div class="config-section">
       <div class="config-section-title">Import / Export</div>
       <textarea id="import-export-area" placeholder="Paste exported data here to import…" spellcheck="false"></textarea>
       <div class="config-btn-row">
@@ -1048,6 +1187,9 @@ body {
       </div>
     </div>
   </div><!-- #view-config -->
+
+  <!-- Online view -->
+  <div id="view-online" style="display:none;flex:1;flex-direction:column;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;padding:12px;gap:12px;min-width:0;"></div>
 
   </div><!-- #sidebar-content -->
 </aside>
@@ -1089,10 +1231,32 @@ let editModeFilteredOut = { pool: [], done: [], todo: [] };
 let sidebarCollapsed = false;
 let panelCollapsed = { pool: false, done: false, todo: false };
 let currentTab = 'lists';
+const PRESETS = [
+  { label: 'Swamp',   bg: '#a8c832', surface: '#bcd848', surface2: '#cee460', text: '#1a3004', textDim: '#4a6a10', border: '#88a81e' },
+  { label: 'Forest',  bg: '#0d1f0f', surface: '#122914', surface2: '#1a3d1d', text: '#e0ede0', textDim: '#7a9e7a', border: '#254d28' },
+  { label: 'Ocean',   bg: '#1a1a2e', surface: '#16213e', surface2: '#0f3460', text: '#e0e0e0', textDim: '#888888', border: '#2a2a4a' },
+  { label: 'Dusk',    bg: '#13101f', surface: '#1c1530', surface2: '#2e1f52', text: '#e8e0f0', textDim: '#9080b0', border: '#3a2a5a' },
+  { label: 'Ember',   bg: '#1f0d0d', surface: '#2a1010', surface2: '#3d1515', text: '#f0e0e0', textDim: '#a07070', border: '#5a2020' },
+  { label: 'Slate',   bg: '#111318', surface: '#181c22', surface2: '#232830', text: '#dde2e8', textDim: '#7a8592', border: '#2e3540' },
+];
+
+const DEFAULT_COLORS = PRESETS[0];
+
 let config = {
   hints: { name: 'hidden', sprite: 'hidden', types: 'hidden', gen: 'hidden', dex: 'hidden' },
   gens: null,
+  colors: { ...DEFAULT_COLORS },
 };
+
+function applyColors(c) {
+  const s = document.documentElement.style;
+  s.setProperty('--bg',       c.bg);
+  s.setProperty('--surface',  c.surface);
+  s.setProperty('--surface2', c.surface2);
+  s.setProperty('--text',     c.text);
+  s.setProperty('--text-dim', c.textDim);
+  s.setProperty('--border',   c.border);
+}
 
 // Wheel animation
 let wheelAngle = 0;       // current rotation in radians
@@ -1110,6 +1274,16 @@ let sortAsc = true;
 let animateNextRender = false;
 const pokedexCache = new Map();
 const bioCache = new Map();
+
+// ── ONLINE / AUTH STATE ──
+const API_BASE = '/api/v1';
+let authToken = localStorage.getItem('pokeroulette_auth_token') || null;
+let authUsername = localStorage.getItem('pokeroulette_auth_user') || null;
+let currentRoom = null;
+const ROOM_CODE_KEY = 'pokeroulette_room_code';
+let pendingRoomCode = window.location.hash.replace(/^#/, '').trim() || null;
+let sseSource = null;
+let sseConnected = false;
 
 // ── INIT ──
 async function init() {
@@ -1137,6 +1311,13 @@ async function init() {
   buildWheel();
   startIdleSpin();
   bindEvents();
+
+  if (authToken) {
+    // Hash takes priority over saved room (shared link scenario)
+    const roomCode = pendingRoomCode || localStorage.getItem(ROOM_CODE_KEY);
+    pendingRoomCode = null;
+    if (roomCode) connectToRoom(roomCode).catch(() => setRoom(null));
+  }
 }
 
 // ── PERSISTENCE ──
@@ -1162,6 +1343,9 @@ function loadLists() {
 
 function saveLists() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
+  if (currentRoom) {
+    apiRequest('PUT', `/rooms/${currentRoom.code}/lists`, { lists });
+  }
 }
 
 // ── SIDEBAR COLLAPSE ──
@@ -1219,10 +1403,12 @@ function loadConfig() {
     const raw = localStorage.getItem(CONFIG_KEY);
     if (raw) {
       const saved = JSON.parse(raw);
-      if (saved.hints) config.hints = { ...config.hints, ...saved.hints };
+      if (saved.hints)  config.hints  = { ...config.hints, ...saved.hints };
       if (saved.gens !== undefined) config.gens = saved.gens;
+      if (saved.colors) config.colors = { ...DEFAULT_COLORS, ...saved.colors };
     }
   } catch(e) {}
+  applyColors(config.colors);
 }
 
 function saveConfig() {
@@ -1269,14 +1455,89 @@ function buildConfigPanel() {
       radio.closest('.hint-radio-label').classList.toggle('selected', isSelected);
     });
   }
+
+  // Theme presets
+  const presetsEl = document.getElementById('theme-presets');
+  presetsEl.innerHTML = '';
+  for (const p of PRESETS) {
+    const btn = document.createElement('button');
+    btn.className = 'theme-swatch';
+    btn.title = p.label;
+    btn.style.background = `linear-gradient(135deg, ${p.surface2} 50%, ${p.bg} 50%)`;
+    btn.style.borderColor = p.border;
+    btn.textContent = p.label;
+    btn.addEventListener('click', () => {
+      config.colors = { ...p };
+      saveConfig();
+      applyColors(config.colors);
+      buildConfigPanel();
+    });
+    presetsEl.appendChild(btn);
+  }
+
+  // Color pickers
+  const COLOR_FIELDS = [
+    { key: 'bg',       label: 'Background' },
+    { key: 'surface',  label: 'Surface' },
+    { key: 'surface2', label: 'Surface 2' },
+    { key: 'text',     label: 'Text' },
+    { key: 'textDim',  label: 'Text dim' },
+    { key: 'border',   label: 'Border' },
+  ];
+  const pickersEl = document.getElementById('theme-pickers');
+  pickersEl.innerHTML = '';
+  for (const { key, label } of COLOR_FIELDS) {
+    const row = document.createElement('div');
+    row.className = 'color-picker-row';
+
+    const lbl = document.createElement('span');
+    lbl.className = 'color-picker-label';
+    lbl.textContent = label;
+
+    const swatch = document.createElement('button');
+    swatch.className = 'color-picker-swatch';
+    swatch.style.background = config.colors[key];
+    swatch.title = 'Pick colour';
+
+    const hex = document.createElement('input');
+    hex.type = 'text';
+    hex.className = 'color-picker-hex online-input';
+    hex.value = config.colors[key];
+    hex.maxLength = 7;
+    hex.spellcheck = false;
+
+    const update = (val) => {
+      config.colors[key] = val;
+      swatch.style.background = val;
+      hex.value = val;
+      saveConfig();
+      applyColors(config.colors);
+    };
+
+    swatch.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openColorPicker(swatch, config.colors[key], update);
+    });
+    hex.addEventListener('input', () => {
+      const v = hex.value.trim();
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) update(v);
+    });
+    hex.addEventListener('blur', () => { hex.value = config.colors[key]; });
+
+    row.append(lbl, swatch, hex);
+    pickersEl.appendChild(row);
+  }
 }
 
 function switchTab(name) {
   currentTab = name;
   document.getElementById('view-lists').style.display = name === 'lists' ? 'flex' : 'none';
   document.getElementById('view-config').style.display = name === 'config' ? 'flex' : 'none';
+  document.getElementById('view-online').style.display = name === 'online' ? 'flex' : 'none';
   document.getElementById('tab-lists').classList.toggle('active', name === 'lists');
   document.getElementById('tab-config').classList.toggle('active', name === 'config');
+  document.getElementById('tab-online').classList.toggle('active', name === 'online');
+  if (name === 'online') renderOnlineView();
   if (sidebarCollapsed) {
     sidebarCollapsed = false;
     localStorage.setItem(SIDEBAR_KEY, false);
@@ -1479,20 +1740,16 @@ function updateCenterText() {
 }
 
 function applyWheelRotation() {
-  const group = document.getElementById('wheel-group');
-  const deg = (wheelAngle * 180 / Math.PI);
-  group.setAttribute('transform', `rotate(${deg})`);
+  const deg = wheelAngle * 180 / Math.PI;
+  document.getElementById('wheel-group').style.transform = `rotate(${deg}deg)`;
 }
 
 // ── IDLE SPIN ──
 function startIdleSpin() {
   if (REDUCED_MOTION) return;
   if (spinState !== 'idle') return;
-  wheelVelocity = (2 * Math.PI) / 60; // 1 RPM
-  if (!animFrame) {
-    lastTimestamp = null;
-    animFrame = requestAnimationFrame(animLoop);
-  }
+  stopAnimation();
+  document.getElementById('wheel-group').classList.add('idle-spinning');
 }
 
 function stopAnimation() {
@@ -1500,6 +1757,7 @@ function stopAnimation() {
     cancelAnimationFrame(animFrame);
     animFrame = null;
   }
+  document.getElementById('wheel-group').classList.remove('idle-spinning');
 }
 
 function animLoop(ts) {
@@ -1560,6 +1818,14 @@ function activateSpin() {
     spinState = 'spinning';
     wheelVelocity = 15 + Math.random() * 5; // fast initial snap
     updateCenterText();
+    // Snapshot angle from CSS animation before removing it
+    const group = document.getElementById('wheel-group');
+    if (group.classList.contains('idle-spinning')) {
+      const m = new DOMMatrix(getComputedStyle(group).transform);
+      wheelAngle = Math.atan2(m.b, m.a);
+      group.classList.remove('idle-spinning');
+      group.style.transform = `rotate(${wheelAngle * 180 / Math.PI}deg)`;
+    }
     if (!animFrame) {
       lastTimestamp = null;
       animFrame = requestAnimationFrame(animLoop);
@@ -1890,6 +2156,11 @@ function showDetail() {
   const p = selectedPokemon;
   document.getElementById('detail-name').textContent = p.name;
   document.getElementById('btn-confirm').style.display = detailOpenedFromList ? '' : 'none';
+  const isGuest = currentRoom && currentRoom.role === 'guest';
+  document.getElementById('btn-confirm').disabled = isGuest;
+  document.getElementById('btn-remove').disabled = isGuest;
+  document.getElementById('btn-confirm').title = isGuest ? 'Guests cannot edit lists' : 'Move to Drawn';
+  document.getElementById('btn-remove').title = isGuest ? 'Guests cannot edit lists' : 'Move to The Pile';
 
   const img = document.getElementById('detail-img');
   img.src = p.spriteUrl;
@@ -2080,6 +2351,30 @@ function renderSidebar() {
     if (editMode[listName]) continue; // don't re-render while editing
     renderList(listName);
   }
+  renderRoomIndicator();
+}
+
+function renderRoomIndicator() {
+  const bar = document.getElementById('room-indicator');
+  if (!currentRoom) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  bar.innerHTML = '';
+
+  const dot = document.createElement('span');
+  dot.className = `online-conn-dot ${sseConnected ? 'green' : 'amber'}`;
+
+  const label = document.createElement('span');
+  label.textContent = 'Room\u00a0';
+
+  const code = document.createElement('span');
+  code.className = 'room-ind-code';
+  code.textContent = currentRoom.code;
+
+  const role = document.createElement('span');
+  role.className = `online-role-badge role-${currentRoom.role} room-ind-role`;
+  role.textContent = currentRoom.role;
+
+  bar.append(dot, label, code, role);
 }
 
 function renderList(listName) {
@@ -2253,12 +2548,14 @@ function onDragStart(e) {
   row.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', row.dataset.pokemonId);
+  document.getElementById('wheel-group').style.animationPlayState = 'paused';
 }
 
 function onDragEnd(e) {
   e.currentTarget.classList.remove('dragging');
   dragData = null;
   document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-active'));
+  document.getElementById('wheel-group').style.animationPlayState = '';
 }
 
 function setupDropZones(body, listName) {
@@ -2518,6 +2815,9 @@ function bindEvents() {
   // Tab switching
   document.getElementById('tab-lists').addEventListener('click', () => switchTab('lists'));
   document.getElementById('tab-config').addEventListener('click', () => switchTab('config'));
+  document.getElementById('tab-online').addEventListener('click', () => switchTab('online'));
+
+  window.addEventListener('beforeunload', () => closeSSE());
 
   // Hint radios
   for (const key of ['name', 'sprite', 'types', 'gen', 'dex']) {
@@ -2566,6 +2866,661 @@ function bindEvents() {
     winner = null;
     updateCenterText();
   });
+}
+
+// ── ONLINE: API HELPER ──
+async function apiRequest(method, path, body = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  try {
+    const res = await fetch(API_BASE + path, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : null,
+    });
+    const refreshed = res.headers.get('X-Refreshed-Token');
+    if (refreshed) setAuth(refreshed, authUsername);
+    let data = null;
+    try { data = await res.json(); } catch (_) {}
+    return { ok: res.ok, status: res.status, data };
+  } catch (_) {
+    return { ok: false, status: 0, data: null };
+  }
+}
+
+// ── ONLINE: SSE ──
+function openSSE(code) {
+  if (sseSource) sseSource.close();
+  const url = `${API_BASE}/rooms/${code}/events`;
+  sseSource = new EventSource(`${url}?token=${encodeURIComponent(authToken)}`);
+
+  sseSource.addEventListener('connected', (e) => {
+    const data = JSON.parse(e.data);
+    currentRoom.members = data.members;
+    currentRoom.role = data.role;
+    sseConnected = true;
+    renderOnlineView();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data.lists));
+    lists = data.lists;
+    validateAll();
+    renderSidebar();
+    buildWheel();
+  });
+
+  sseSource.addEventListener('lists_updated', (e) => {
+    const data = JSON.parse(e.data);
+    if (data.updated_by === authUsername) return;
+    lists = data.lists;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data.lists));
+    validateAll();
+    renderSidebar();
+    buildWheel();
+  });
+
+  sseSource.addEventListener('member_joined', (e) => {
+    const data = JSON.parse(e.data);
+    currentRoom.members.push({ user_id: data.user_id, role: data.role });
+    renderOnlineView();
+  });
+
+  sseSource.addEventListener('member_left', (e) => {
+    const data = JSON.parse(e.data);
+    currentRoom.members = currentRoom.members.filter(m => m.user_id !== data.user_id);
+    renderOnlineView();
+  });
+
+  sseSource.addEventListener('role_changed', (e) => {
+    const data = JSON.parse(e.data);
+    const member = currentRoom.members.find(m => m.user_id === data.user_id);
+    if (member) member.role = data.role;
+    if (data.user_id === authUsername) currentRoom.role = data.role;
+    renderOnlineView();
+  });
+
+  sseSource.addEventListener('room_closed', (e) => {
+    const data = JSON.parse(e.data);
+    closeSSE();
+    setRoom(null);
+    showNotification(`Room was closed by ${data.closed_by}`);
+    renderOnlineView();
+  });
+
+  sseSource.onerror = () => {
+    sseConnected = false;
+    renderOnlineView();
+  };
+}
+
+function closeSSE() {
+  if (sseSource) { sseSource.close(); sseSource = null; }
+  sseConnected = false;
+}
+
+// ── ONLINE: CONNECT HELPER ──
+async function connectToRoom(code) {
+  const { ok, data } = await apiRequest('POST', `/rooms/${code}/join`);
+  if (!ok) return;
+  setRoom({ code, role: data.role, members: data.members });
+  openSSE(code);
+  renderOnlineView();
+}
+
+// ── ONLINE: NOTIFICATION ──
+function showNotification(msg) {
+  const el = document.createElement('div');
+  el.className = 'online-notification';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+// ── ONLINE: ROLE BADGE ──
+function roleBadge(role) {
+  const span = document.createElement('span');
+  span.className = `online-role-badge role-${role}`;
+  span.textContent = role;
+  return span;
+}
+
+// ── ONLINE: RENDER ──
+function renderOnlineView() {
+  renderRoomIndicator();
+  if (currentTab !== 'online') return;
+  if (!authToken)      renderAuthSection();
+  else if (!currentRoom) renderRoomSection();
+  else                 renderActiveRoomSection();
+}
+
+function renderAuthSection() {
+  const container = document.getElementById('view-online');
+  let activeSubtab = 'signin';
+  let savedUsername = '';
+  let savedPassword = '';
+
+  function render() {
+    container.innerHTML = '';
+    const tabRow = el('div', 'online-tabs');
+    const sinBtn = el('button', `online-tab${activeSubtab==='signin'?' active':''}`, 'Sign In');
+    const regBtn = el('button', `online-tab${activeSubtab==='register'?' active':''}`, 'Register');
+    sinBtn.addEventListener('click', () => {
+      savedUsername = userInput.value;
+      savedPassword = passInput.value;
+      activeSubtab = 'signin';
+      render();
+    });
+    regBtn.addEventListener('click', () => {
+      savedUsername = userInput.value;
+      savedPassword = passInput.value;
+      activeSubtab = 'register';
+      render();
+    });
+    tabRow.append(sinBtn, regBtn);
+    container.appendChild(tabRow);
+
+    const errDiv = el('div', 'online-error');
+
+    const userField = el('div', 'online-field');
+    const userLabel = el('label', 'online-label', 'Username');
+    const userInput = elInput('text', 'online-input', 'username');
+    userInput.value = savedUsername;
+    userField.append(userLabel, userInput);
+
+    const passField = el('div', 'online-field');
+    const passLabel = el('label', 'online-label', 'Password');
+    const passInput = elInput('password', 'online-input', '');
+    passInput.value = savedPassword;
+    passField.append(passLabel, passInput);
+
+    container.append(userField, passField);
+
+    let confirmInput = null;
+    if (activeSubtab === 'register') {
+      const confirmField = el('div', 'online-field');
+      const confirmLabel = el('label', 'online-label', 'Confirm password');
+      confirmInput = elInput('password', 'online-input', '');
+      confirmField.append(confirmLabel, confirmInput);
+      container.appendChild(confirmField);
+    }
+
+    const btnLabel = activeSubtab === 'signin' ? 'Sign In' : 'Register';
+    const submitBtn = el('button', 'online-btn online-btn-primary', btnLabel);
+
+    submitBtn.addEventListener('click', async () => {
+      errDiv.textContent = '';
+      const u = userInput.value.trim();
+      const p = passInput.value;
+      if (!u || !p) { errDiv.textContent = 'Username and password required'; return; }
+      if (activeSubtab === 'register') {
+        if (confirmInput.value !== p) { errDiv.textContent = 'Passwords do not match'; return; }
+      }
+      submitBtn.disabled = true;
+      if (activeSubtab === 'signin') await handleSignIn(u, p, errDiv);
+      else await handleRegister(u, p, errDiv);
+      submitBtn.disabled = false;
+    });
+
+    container.append(submitBtn, errDiv);
+  }
+
+  render();
+}
+
+function renderRoomSection() {
+  const container = document.getElementById('view-online');
+  container.innerHTML = '';
+
+  const greeting = el('div', 'online-greeting');
+  greeting.innerHTML = `Signed in as <b>${authUsername}</b>`;
+  container.appendChild(greeting);
+
+  container.appendChild(el('hr', 'online-divider'));
+
+  // Create room
+  container.appendChild(el('div', 'online-section-title', 'Create Room'));
+  const codeField = el('div', 'online-field');
+  const codeLabel = el('label', 'online-label', 'Room code');
+  const codeInput = elInput('text', 'online-input', 'my-room');
+  const createBtn = el('button', 'online-btn online-btn-primary', 'Create');
+  const createErr = el('div', 'online-error');
+  createBtn.disabled = true;
+
+  codeInput.addEventListener('input', () => {
+    codeInput.value = sanitizeRoomCodeLive(codeInput.value);
+    createBtn.disabled = !isValidRoomCode(codeInput.value);
+  });
+  codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') createBtn.click(); });
+  createBtn.addEventListener('click', async () => {
+    createBtn.disabled = true;
+    createErr.textContent = '';
+    await handleCreateRoom(codeInput.value, createErr);
+    createBtn.disabled = !isValidRoomCode(codeInput.value);
+  });
+  codeField.append(codeLabel, codeInput);
+  container.append(codeField, createBtn, createErr);
+
+  container.appendChild(el('hr', 'online-divider'));
+
+  // Join room
+  container.appendChild(el('div', 'online-section-title', 'Join Room'));
+  const joinField = el('div', 'online-field');
+  const joinLabel = el('label', 'online-label', 'Room code');
+  const joinInput = elInput('text', 'online-input', 'enter code');
+  if (pendingRoomCode) joinInput.value = pendingRoomCode;
+  const joinBtn = el('button', 'online-btn online-btn-primary', 'Join');
+  const joinErr = el('div', 'online-error');
+  joinInput.addEventListener('input', () => {
+    joinInput.value = sanitizeRoomCodeLive(joinInput.value);
+  });
+  joinInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') joinBtn.click(); });
+  joinBtn.addEventListener('click', async () => {
+    joinBtn.disabled = true;
+    joinErr.textContent = '';
+    await handleJoinRoom(sanitizeRoomCode(joinInput.value), joinErr);
+    joinBtn.disabled = false;
+  });
+  joinField.append(joinLabel, joinInput);
+  container.append(joinField, joinBtn, joinErr);
+
+  container.appendChild(el('hr', 'online-divider'));
+
+  const chgPassBtn = el('button', 'online-link-btn', 'Change password');
+  chgPassBtn.addEventListener('click', () => showChangePasswordModal());
+  const signOutBtn = el('button', 'online-btn online-btn-danger', 'Sign Out');
+  signOutBtn.addEventListener('click', handleSignOut);
+  container.append(chgPassBtn, signOutBtn);
+}
+
+function renderActiveRoomSection() {
+  const container = document.getElementById('view-online');
+  container.innerHTML = '';
+
+  const hdr = el('div', 'online-room-header');
+  const codeSpan = el('span', 'online-room-code', currentRoom.code);
+  const copyBtn = el('button', 'online-copy-btn', '⎘ Copy');
+  copyBtn.addEventListener('click', () => navigator.clipboard?.writeText(currentRoom.code).catch(() => {}));
+  const connDot = el('span', `online-conn-dot${sseConnected ? ' green' : ' amber'}`);
+  hdr.append(codeSpan, copyBtn, connDot);
+  container.appendChild(hdr);
+
+  const myRoleRow = el('div', 'online-member-row');
+  myRoleRow.appendChild(el('span', 'online-member-name', 'Your role:'));
+  myRoleRow.appendChild(roleBadge(currentRoom.role));
+  container.appendChild(myRoleRow);
+
+  container.appendChild(el('hr', 'online-divider'));
+  container.appendChild(el('div', 'online-section-title', 'Members'));
+
+  for (const member of currentRoom.members) {
+    const row = el('div', 'online-member-row');
+    const nameSpan = el('span', 'online-member-name', member.user_id);
+    row.append(nameSpan, roleBadge(member.role));
+    if (member.user_id === authUsername) {
+      row.appendChild(el('span', 'online-member-you', '(you)'));
+    } else if (canAssignRoles()) {
+      const menuDiv = el('div', 'online-member-menu');
+      const menuBtn = el('button', 'online-member-menu-btn', '…');
+      let dropOpen = false;
+      menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropOpen = !dropOpen;
+        if (dropOpen) {
+          const drop = el('div', 'online-dropdown');
+          const assignableRoles = getAssignableRoles();
+          for (const role of assignableRoles) {
+            if (role === member.role) continue;
+            const item = el('button', 'online-dropdown-item', `Set ${role}`);
+            item.addEventListener('click', async () => {
+              drop.remove();
+              await handleAssignRole(member.user_id, role);
+            });
+            drop.appendChild(item);
+          }
+          menuDiv.appendChild(drop);
+          document.addEventListener('click', () => drop.remove(), { once: true });
+        }
+      });
+      menuDiv.appendChild(menuBtn);
+      row.appendChild(menuDiv);
+    }
+    container.appendChild(row);
+  }
+
+  container.appendChild(el('hr', 'online-divider'));
+
+  const roomErr = el('div', 'online-error');
+
+  const leaveBtn = el('button', 'online-btn online-btn-secondary', 'Leave Room');
+  const otherCount = currentRoom.members.filter(m => m.user_id !== authUsername).length;
+  if (currentRoom.role === 'host' && otherCount > 0) {
+    leaveBtn.disabled = true;
+    leaveBtn.title = 'Transfer host role before leaving';
+  }
+  leaveBtn.addEventListener('click', async () => {
+    leaveBtn.disabled = true;
+    roomErr.textContent = '';
+    await handleLeaveRoom(roomErr);
+    leaveBtn.disabled = false;
+  });
+  container.appendChild(leaveBtn);
+
+  if (currentRoom.role === 'host') {
+    const closeBtn = el('button', 'online-btn online-btn-danger', 'Close Room');
+    closeBtn.addEventListener('click', async () => {
+      if (!confirm('Close this room for all members?')) return;
+      closeBtn.disabled = true;
+      await handleCloseRoom(roomErr);
+    });
+    container.appendChild(closeBtn);
+  }
+  container.appendChild(roomErr);
+}
+
+// ── ONLINE: DOM HELPERS ──
+function el(tag, className, text) {
+  const e = document.createElement(tag);
+  if (className) e.className = className;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function elInput(type, className, placeholder) {
+  const e = document.createElement('input');
+  e.type = type;
+  e.className = className;
+  e.placeholder = placeholder;
+  return e;
+}
+
+// ── ONLINE: ROOM CODE HELPERS ──
+// Live version: keeps trailing dashes so typing "my-room" isn't interrupted.
+function sanitizeRoomCodeLive(raw) {
+  return raw
+    .toLowerCase()
+    .replace(/[\s_]+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-+/, '');
+}
+
+// Final version (used for submission): also strips trailing dashes.
+function sanitizeRoomCode(raw) {
+  return sanitizeRoomCodeLive(raw).replace(/-+$/, '');
+}
+
+function isValidRoomCode(code) {
+  return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(code) && code.length >= 3 && code.length <= 32;
+}
+
+// ── ONLINE: ROLE HELPERS ──
+function canAssignRoles() {
+  return currentRoom.role === 'host' || currentRoom.role === 'moderator';
+}
+
+function getAssignableRoles() {
+  if (currentRoom.role === 'host') return ['host', 'moderator', 'guest'];
+  if (currentRoom.role === 'moderator') return ['guest'];
+  return [];
+}
+
+// ── ONLINE: AUTH HANDLERS ──
+function setRoom(room) {
+  currentRoom = room;
+  if (room) {
+    localStorage.setItem(ROOM_CODE_KEY, room.code);
+    history.replaceState(null, '', '#' + room.code);
+  } else {
+    localStorage.removeItem(ROOM_CODE_KEY);
+    history.replaceState(null, '', window.location.pathname);
+  }
+}
+
+function setAuth(token, username) {
+  authToken = token;
+  authUsername = username;
+  if (token) {
+    localStorage.setItem('pokeroulette_auth_token', token);
+    localStorage.setItem('pokeroulette_auth_user', username);
+  } else {
+    localStorage.removeItem('pokeroulette_auth_token');
+    localStorage.removeItem('pokeroulette_auth_user');
+  }
+}
+
+async function handleSignIn(username, password, errDiv) {
+  const { ok, data } = await apiRequest('POST', '/auth/login', { username, password });
+  if (!ok) { errDiv.textContent = data?.error ?? 'Sign in failed'; return; }
+  setAuth(data.token, username);
+  await tryAutoJoin() || renderOnlineView();
+}
+
+async function handleRegister(username, password, errDiv) {
+  const { ok, data } = await apiRequest('POST', '/auth/register', { username, password });
+  if (!ok) { errDiv.textContent = data?.error ?? 'Registration failed'; return; }
+  setAuth(data.token, username);
+  await tryAutoJoin() || renderOnlineView();
+}
+
+async function tryAutoJoin() {
+  if (!pendingRoomCode) return false;
+  const code = pendingRoomCode;
+  pendingRoomCode = null;
+  await handleJoinRoom(code, { set textContent(v) {} }); // silent error sink
+  return true;
+}
+
+function handleSignOut() {
+  setAuth(null, null);
+  closeSSE();
+  setRoom(null);
+  renderOnlineView();
+}
+
+function showChangePasswordModal() {
+  const overlay = el('div', 'online-modal-overlay');
+  const modal = el('div', 'online-modal');
+
+  modal.appendChild(el('div', 'online-modal-title', 'Change Password'));
+
+  const curField = el('div', 'online-field');
+  const curLabel = el('label', 'online-label', 'Current password');
+  const curInput = elInput('password', 'online-input', '');
+  curField.append(curLabel, curInput);
+
+  const newField = el('div', 'online-field');
+  const newLabel = el('label', 'online-label', 'New password');
+  const newInput = elInput('password', 'online-input', '');
+  newField.append(newLabel, newInput);
+
+  const errDiv = el('div', 'online-error');
+  const confirmBtn = el('button', 'online-btn online-btn-primary', 'Change Password');
+  const cancelBtn = el('button', 'online-btn online-btn-secondary', 'Cancel');
+
+  confirmBtn.addEventListener('click', async () => {
+    confirmBtn.disabled = true;
+    errDiv.textContent = '';
+    await handleChangePassword(curInput.value, newInput.value, errDiv, overlay);
+    confirmBtn.disabled = false;
+  });
+  cancelBtn.addEventListener('click', () => overlay.remove());
+
+  modal.append(curField, newField, errDiv, confirmBtn, cancelBtn);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+async function handleChangePassword(currentPassword, newPassword, errDiv, overlay) {
+  const { ok, data } = await apiRequest('PUT', '/auth/password', {
+    current_password: currentPassword,
+    new_password: newPassword,
+  });
+  if (!ok) { errDiv.textContent = data?.error ?? 'Failed to change password'; return; }
+  setAuth(null, null);
+  setRoom(null);
+  closeSSE();
+  overlay.remove();
+  renderOnlineView();
+}
+
+// ── ONLINE: ROOM HANDLERS ──
+async function handleCreateRoom(code, errDiv) {
+  const roomLists = JSON.parse(localStorage.getItem(STORAGE_KEY)) || lists;
+  const { ok, data } = await apiRequest('POST', '/rooms', { code, lists: roomLists });
+  if (!ok) { errDiv.textContent = data?.error ?? 'Could not create room'; return; }
+  await connectToRoom(code);
+}
+
+async function handleJoinRoom(code, errDiv) {
+  const { ok, data } = await apiRequest('POST', `/rooms/${code}/join`);
+  if (!ok) { errDiv.textContent = data?.error ?? 'Could not join room'; return; }
+  lists = data.lists;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data.lists));
+  setRoom({ code, role: data.role, members: data.members });
+  openSSE(code);
+  renderOnlineView();
+  validateAll();
+  renderSidebar();
+  buildWheel();
+}
+
+async function handleLeaveRoom(errDiv) {
+  const { ok, data } = await apiRequest('POST', `/rooms/${currentRoom.code}/leave`);
+  if (!ok) { errDiv.textContent = data?.error ?? 'Could not leave room'; return; }
+  closeSSE();
+  setRoom(null);
+  renderOnlineView();
+}
+
+async function handleCloseRoom(errDiv) {
+  const { ok, data } = await apiRequest('DELETE', `/rooms/${currentRoom.code}`);
+  if (!ok) { errDiv.textContent = data?.error ?? 'Could not close room'; return; }
+  closeSSE();
+  setRoom(null);
+  renderOnlineView();
+}
+
+async function handleAssignRole(targetUsername, role) {
+  const { ok, data } = await apiRequest(
+    'PUT',
+    `/rooms/${currentRoom.code}/members/${targetUsername}/role`,
+    { role }
+  );
+  if (!ok) { showNotification(data?.error ?? 'Could not assign role'); }
+}
+
+// ── CUSTOM COLOR PICKER ──
+function hexToHsl(hex) {
+  let r = parseInt(hex.slice(1,3),16)/255;
+  let g = parseInt(hex.slice(3,5),16)/255;
+  let b = parseInt(hex.slice(5,7),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h, s, l = (max+min)/2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+    switch(max) {
+      case r: h = ((g-b)/d + (g<b?6:0))/6; break;
+      case g: h = ((b-r)/d + 2)/6; break;
+      case b: h = ((r-g)/d + 4)/6; break;
+    }
+  }
+  return [Math.round(h*360), Math.round(s*100), Math.round(l*100)];
+}
+
+function hslToHex(h, s, l) {
+  s /= 100; l /= 100;
+  const k = n => (n + h/30) % 12;
+  const a = s * Math.min(l, 1-l);
+  const f = n => l - a*Math.max(-1, Math.min(k(n)-3, Math.min(9-k(n), 1)));
+  return '#' + [f(0),f(8),f(4)].map(v => Math.round(v*255).toString(16).padStart(2,'0')).join('');
+}
+
+function openColorPicker(anchor, initialHex, onChange) {
+  document.querySelector('.cp-popup')?.remove();
+
+  let [h, s, l] = hexToHsl(initialHex);
+
+  const popup = document.createElement('div');
+  popup.className = 'cp-popup';
+
+  const preview = document.createElement('div');
+  preview.className = 'cp-preview';
+
+  const makeSlider = (labelText, min, max, getValue, onInput, gradientFn) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'cp-row';
+    const lbl = document.createElement('label');
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.className = 'cp-slider';
+    slider.min = min; slider.max = max;
+    slider.value = getValue();
+    const updateTrack = () => { slider.style.background = gradientFn(); };
+    slider.addEventListener('input', () => {
+      onInput(parseInt(slider.value));
+      updateTrack();
+      syncAll();
+    });
+    lbl.append(document.createTextNode(labelText), document.createTextNode(''));
+    wrap.append(lbl, slider);
+    updateTrack();
+    return { wrap, slider, updateTrack };
+  };
+
+  const hueSlider  = makeSlider('Hue',        0, 360, () => h, v => { h = v; },
+    () => `linear-gradient(to right,hsl(0,100%,50%),hsl(30,100%,50%),hsl(60,100%,50%),hsl(120,100%,50%),hsl(180,100%,50%),hsl(240,100%,50%),hsl(300,100%,50%),hsl(360,100%,50%))`);
+  const satSlider  = makeSlider('Saturation', 0, 100, () => s, v => { s = v; },
+    () => `linear-gradient(to right,hsl(${h},0%,${l}%),hsl(${h},100%,${l}%))`);
+  const litSlider  = makeSlider('Lightness',  0, 100, () => l, v => { l = v; },
+    () => `linear-gradient(to right,hsl(${h},${s}%,0%),hsl(${h},${s}%,50%),hsl(${h},${s}%,100%))`);
+
+  const hexRow = document.createElement('div');
+  hexRow.className = 'cp-hex-row';
+  const hexInput = document.createElement('input');
+  hexInput.className = 'online-input';
+  hexInput.type = 'text';
+  hexInput.maxLength = 7;
+  hexInput.spellcheck = false;
+
+  hexInput.addEventListener('input', () => {
+    const v = hexInput.value.trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+      [h, s, l] = hexToHsl(v);
+      hueSlider.slider.value = h;
+      satSlider.slider.value = s;
+      litSlider.slider.value = l;
+      [hueSlider, satSlider, litSlider].forEach(x => x.updateTrack());
+      syncAll(false);
+    }
+  });
+  hexRow.appendChild(hexInput);
+
+  function syncAll(updateHex = true) {
+    const hex = hslToHex(h, s, l);
+    preview.style.background = hex;
+    if (updateHex) hexInput.value = hex;
+    satSlider.updateTrack();
+    litSlider.updateTrack();
+    onChange(hex);
+  }
+
+  popup.append(preview, hueSlider.wrap, satSlider.wrap, litSlider.wrap, hexRow);
+  document.body.appendChild(popup);
+  syncAll();
+
+  // Position: prefer left of anchor, flip right if off-screen, adjust vertical
+  const rect = anchor.getBoundingClientRect();
+  const pw = 218, ph = 210;
+  let left = rect.left - pw - 8;
+  if (left < 8) left = rect.right + 8;
+  let top = rect.top;
+  if (top + ph > window.innerHeight - 8) top = window.innerHeight - ph - 8;
+  if (top < 8) top = 8;
+  popup.style.left = left + 'px';
+  popup.style.top  = top  + 'px';
+
+  const close = (e) => { if (!popup.contains(e.target) && e.target !== anchor) { popup.remove(); document.removeEventListener('pointerdown', close); } };
+  setTimeout(() => document.addEventListener('pointerdown', close));
 }
 
 init();

@@ -1,0 +1,10 @@
+services:
+  pokeroulette-api:
+    build: ./server
+    environment:
+      JWT_SECRET: "change-me-to-a-random-secret-at-least-32-chars"
+      ALLOWED_ORIGINS: "*"
+    volumes:
+      - ./server/data:/app/data
+    ports:
+      - "8080:8080"
