@@ -1,0 +1,277 @@
+openapi: 3.0.3
+info:
+  title: Poké Roulette API
+  version: 1.0.0
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+
+    Token:
+      type: object
+      properties:
+        token: { type: string }
+
+    Lists:
+      type: object
+      properties:
+        pool: { type: array, items: { type: string } }
+        done: { type: array, items: { type: string } }
+        todo: { type: array, items: { type: string } }
+
+    Member:
+      type: object
+      properties:
+        user_id: { type: string }
+        role:    { type: string, enum: [host, moderator, guest] }
+
+    Role:
+      type: string
+      enum: [host, moderator, guest]
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new account
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, example: alice }
+                password: { type: string, example: hunter2 }
+      responses:
+        '200':
+          description: Registered and signed in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Token' }
+        '400': { description: Validation error,  content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '409': { description: Username taken,    content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /auth/login:
+    post:
+      summary: Sign in
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: Signed in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Token' }
+        '401': { description: Invalid credentials, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /auth/password:
+    put:
+      summary: Change password (invalidates all other sessions)
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, new_password]
+              properties:
+                current_password: { type: string }
+                new_password:     { type: string }
+      responses:
+        '204': { description: Password changed }
+        '401': { description: Unauthorized or wrong current password, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /rooms:
+    post:
+      summary: Create a room (caller becomes host)
+      tags: [Rooms]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:   { type: string, example: my-room, description: "3–32 chars: lowercase letters, digits, hyphens" }
+                lists:  { $ref: '#/components/schemas/Lists' }
+                config: { type: object, description: Opaque config blob (hints, gens, colors) }
+      responses:
+        '201':
+          description: Room created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: string }
+        '400': { description: Invalid code, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '409': { description: Code in use, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /rooms/{code}/join:
+    post:
+      summary: Join a room (adds as guest if not already a member)
+      tags: [Rooms]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Joined (or already a member)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:    { type: string }
+                  role:    { $ref: '#/components/schemas/Role' }
+                  lists:   { $ref: '#/components/schemas/Lists' }
+                  config:  { type: object }
+                  members: { type: array, items: { $ref: '#/components/schemas/Member' } }
+        '404': { description: Room not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /rooms/{code}/leave:
+    post:
+      summary: Leave a room (host must transfer role first unless alone)
+      tags: [Rooms]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Left }
+        '403': { description: Host must transfer role first, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '404': { description: Not a member, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /rooms/{code}:
+    delete:
+      summary: Close a room (host only, broadcasts room_closed to all members)
+      tags: [Rooms]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Room closed }
+        '403': { description: Not host, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '404': { description: Room not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /rooms/{code}/lists:
+    put:
+      summary: Update the shared Pokémon lists (host/moderator only)
+      tags: [Rooms]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lists]
+              properties:
+                lists: { $ref: '#/components/schemas/Lists' }
+      responses:
+        '204': { description: Lists updated, broadcasts lists_updated }
+        '403': { description: Guests cannot edit, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /rooms/{code}/config:
+    put:
+      summary: Update the shared config (host/moderator only)
+      tags: [Rooms]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [config]
+              properties:
+                config:
+                  type: object
+                  description: Full config object (hints, gens, colors)
+                  example:
+                    hints: { name: hidden, sprite: hidden, types: hidden, gen: hidden, dex: hidden }
+                    gens: [1, 2, 3]
+                    colors: { bg: "#a8c832", surface: "#bcd848", surface2: "#cee460", text: "#1a3004", textDim: "#4a6a10", border: "#88a81e" }
+      responses:
+        '204': { description: Config updated, broadcasts config_updated }
+        '403': { description: Guests cannot update config, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /rooms/{code}/members/{username}/role:
+    put:
+      summary: Assign a role to a member
+      tags: [Rooms]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: code,     in: path, required: true, schema: { type: string } }
+        - { name: username, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role: { $ref: '#/components/schemas/Role' }
+      responses:
+        '204': { description: Role assigned, broadcasts role_changed }
+        '403': { description: Insufficient permissions, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '404': { description: Member not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /rooms/{code}/events:
+    get:
+      summary: "SSE stream — auth via ?token= query param"
+      tags: [Rooms]
+      parameters:
+        - { name: code,  in: path,  required: true, schema: { type: string } }
+        - { name: token, in: query, required: true, schema: { type: string }, description: JWT bearer token }
+      responses:
+        '200':
+          description: Server-Sent Events stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  Events emitted on this stream:
+
+                  **connected**       – `{ lists, config, members, role }` — sent immediately on connect
+                  **lists_updated**   – `{ lists, updated_by }`
+                  **config_updated**  – `{ config, updated_by }`
+                  **member_joined**   – `{ user_id, role }`
+                  **member_left**     – `{ user_id }`
+                  **role_changed**    – `{ user_id, role, changed_by }`
+                  **room_closed**     – `{ closed_by }`
+        '401': { description: Unauthorized }
+        '403': { description: Not a member }
+        '404': { description: Room not found }

@@ -52,7 +52,12 @@ CREATE TABLE IF NOT EXISTS room_lists (
   lists_json TEXT NOT NULL,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`)
-	return err
+	if err != nil {
+		return err
+	}
+	// Idempotent column additions — ignore errors if column already exists.
+	d.Exec(`ALTER TABLE room_lists ADD COLUMN config_json TEXT NOT NULL DEFAULT '{}'`)
+	return nil
 }
 
 // ── USERS ──
@@ -120,7 +125,7 @@ type Member struct {
 	Role   string `json:"role"`
 }
 
-func (d *DB) CreateRoom(code string, lists Lists) error {
+func (d *DB) CreateRoom(code string, lists Lists, config json.RawMessage) error {
 	tx, err := d.Begin()
 	if err != nil {
 		return err
@@ -134,7 +139,13 @@ func (d *DB) CreateRoom(code string, lists Lists) error {
 	roomID, _ := res.LastInsertId()
 
 	j, _ := json.Marshal(lists)
-	_, err = tx.Exec(`INSERT INTO room_lists (room_id, lists_json) VALUES (?, ?)`, roomID, string(j))
+	if config == nil {
+		config = json.RawMessage("{}")
+	}
+	_, err = tx.Exec(
+		`INSERT INTO room_lists (room_id, lists_json, config_json) VALUES (?, ?, ?)`,
+		roomID, string(j), string(config),
+	)
 	if err != nil {
 		return err
 	}
@@ -201,16 +212,22 @@ func (d *DB) GetLists(roomID int64) (Lists, error) {
 	}
 	var l Lists
 	json.Unmarshal([]byte(j), &l)
-	if l.Pool == nil {
-		l.Pool = []string{}
-	}
-	if l.Done == nil {
-		l.Done = []string{}
-	}
-	if l.Todo == nil {
-		l.Todo = []string{}
-	}
+	if l.Pool == nil { l.Pool = []string{} }
+	if l.Done == nil { l.Done = []string{} }
+	if l.Todo == nil { l.Todo = []string{} }
 	return l, nil
+}
+
+func (d *DB) GetRoomConfig(roomID int64) (json.RawMessage, error) {
+	var j string
+	err := d.QueryRow(`SELECT config_json FROM room_lists WHERE room_id = ?`, roomID).Scan(&j)
+	if err != nil {
+		return json.RawMessage("{}"), err
+	}
+	if j == "" {
+		return json.RawMessage("{}"), nil
+	}
+	return json.RawMessage(j), nil
 }
 
 func (d *DB) UpdateLists(roomID int64, lists Lists) error {
@@ -218,6 +235,14 @@ func (d *DB) UpdateLists(roomID int64, lists Lists) error {
 	_, err := d.Exec(
 		`UPDATE room_lists SET lists_json = ?, updated_at = ? WHERE room_id = ?`,
 		string(j), time.Now(), roomID,
+	)
+	return err
+}
+
+func (d *DB) UpdateRoomConfig(roomID int64, config json.RawMessage) error {
+	_, err := d.Exec(
+		`UPDATE room_lists SET config_json = ?, updated_at = ? WHERE room_id = ?`,
+		string(config), time.Now(), roomID,
 	)
 	return err
 }
