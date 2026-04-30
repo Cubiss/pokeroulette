@@ -49,9 +49,17 @@ func handleSSE(w http.ResponseWriter, r *http.Request) {
 		Done:     make(chan struct{}),
 	}
 	hub.AddClient(code, client)
-	defer hub.RemoveClient(code, client)
+	hub.Broadcast(code, "member_online", map[string]string{"user_id": claims.Username}, claims.Username)
+	defer func() {
+		hub.Broadcast(code, "member_offline", map[string]string{"user_id": claims.Username}, claims.Username)
+		hub.RemoveClient(code, client)
+	}()
 
 	members, _ := database.GetMembers(roomID)
+	online := hub.OnlineUsernames(code)
+	for i := range members {
+		members[i].Online = online[members[i].UserID]
+	}
 	lists, _   := database.GetLists(roomID)
 	config, _  := database.GetRoomConfig(roomID)
 	payload, _ := json.Marshal(map[string]any{"lists": lists, "members": members, "role": role, "config": config})

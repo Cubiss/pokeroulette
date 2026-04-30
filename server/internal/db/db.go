@@ -123,6 +123,7 @@ type Lists struct {
 type Member struct {
 	UserID string `json:"user_id"`
 	Role   string `json:"role"`
+	Online bool   `json:"online"`
 }
 
 func (d *DB) CreateRoom(code string, lists Lists, config json.RawMessage) error {

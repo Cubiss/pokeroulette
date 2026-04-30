@@ -70,8 +70,12 @@ func handleJoinRoom(w http.ResponseWriter, r *http.Request) {
 		hub.Broadcast(code, "member_joined", map[string]string{"user_id": claims.Username, "role": "guest"}, claims.Username)
 	}
 	members, _ := database.GetMembers(roomID)
-	lists, _   := database.GetLists(roomID)
-	config, _  := database.GetRoomConfig(roomID)
+	online := hub.OnlineUsernames(code)
+	for i := range members {
+		members[i].Online = online[members[i].UserID]
+	}
+	lists, _  := database.GetLists(roomID)
+	config, _ := database.GetRoomConfig(roomID)
 	jsonResponse(w, http.StatusOK, map[string]any{
 		"code": code, "role": role, "lists": lists, "members": members, "config": config,
 	})
@@ -91,7 +95,6 @@ func handleLeaveRoom(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusNotFound, "not a member of this room")
 		return
 	}
-	hub.Broadcast(code, "member_left", map[string]string{"user_id": claims.Username}, claims.Username)
 	w.WriteHeader(http.StatusNoContent)
 }
 

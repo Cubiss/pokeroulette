@@ -64,6 +64,16 @@ func (h *Hub) Broadcast(roomCode, event string, data any, excludeUsername string
 	}
 }
 
+func (h *Hub) OnlineUsernames(roomCode string) map[string]bool {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	online := make(map[string]bool)
+	for c := range h.rooms[roomCode] {
+		online[c.Username] = true
+	}
+	return online
+}
+
 // CloseRoom closes all SSE connections for a room.
 func (h *Hub) CloseRoom(roomCode string) {
 	h.mu.Lock()

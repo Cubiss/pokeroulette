@@ -81,13 +81,26 @@ export function openSSE(code) {
 
   sseSource.addEventListener('member_joined', (e) => {
     const data = JSON.parse(e.data);
-    state.currentRoom.members.push({ user_id: data.user_id, role: data.role });
+    state.currentRoom.members.push({ user_id: data.user_id, role: data.role, online: true });
     renderOnlineView();
   });
 
-  sseSource.addEventListener('member_left', (e) => {
+  sseSource.addEventListener('member_online', (e) => {
     const data = JSON.parse(e.data);
-    state.currentRoom.members = state.currentRoom.members.filter(m => m.user_id !== data.user_id);
+    const member = state.currentRoom.members.find(m => m.user_id === data.user_id);
+    if (member) member.online = true;
+    renderOnlineView();
+  });
+
+  sseSource.addEventListener('member_offline', (e) => {
+    const data = JSON.parse(e.data);
+    const member = state.currentRoom.members.find(m => m.user_id === data.user_id);
+    if (!member) return;
+    if (member.role === 'guest') {
+      state.currentRoom.members = state.currentRoom.members.filter(m => m.user_id !== data.user_id);
+    } else {
+      member.online = false;
+    }
     renderOnlineView();
   });
 
@@ -328,8 +341,9 @@ function renderActiveRoomSection() {
 
   for (const member of state.currentRoom.members) {
     const row = el('div', 'online-member-row');
+    const dot = el('span', `online-conn-dot ${member.online ? 'green' : 'amber'}`);
     const nameSpan = el('span', 'online-member-name', member.user_id);
-    row.append(nameSpan, roleBadge(member.role));
+    row.append(dot, nameSpan, roleBadge(member.role));
     if (member.user_id === state.authUsername) {
       row.appendChild(el('span', 'online-member-you', '(you)'));
     } else if (canAssignRoles()) {
@@ -365,11 +379,6 @@ function renderActiveRoomSection() {
   const roomErr = el('div', 'online-error');
 
   const leaveBtn = el('button', 'online-btn online-btn-secondary', 'Leave Room');
-  const otherCount = state.currentRoom.members.filter(m => m.user_id !== state.authUsername).length;
-  if (state.currentRoom.role === 'host' && otherCount > 0) {
-    leaveBtn.disabled = true;
-    leaveBtn.title = 'Transfer host role before leaving';
-  }
   leaveBtn.addEventListener('click', async () => {
     leaveBtn.disabled = true;
     roomErr.textContent = '';
