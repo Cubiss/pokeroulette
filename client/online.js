@@ -88,7 +88,11 @@ export function openSSE(code) {
   sseSource.addEventListener('member_online', (e) => {
     const data = JSON.parse(e.data);
     const member = state.currentRoom.members.find(m => m.user_id === data.user_id);
-    if (member) member.online = true;
+    if (member) {
+      member.online = true;
+    } else {
+      state.currentRoom.members.push({ user_id: data.user_id, role: data.role, online: true });
+    }
     renderOnlineView();
   });
 

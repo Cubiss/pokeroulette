@@ -49,7 +49,7 @@ func handleSSE(w http.ResponseWriter, r *http.Request) {
 		Done:     make(chan struct{}),
 	}
 	hub.AddClient(code, client)
-	hub.Broadcast(code, "member_online", map[string]string{"user_id": claims.Username}, claims.Username)
+	hub.Broadcast(code, "member_online", map[string]string{"user_id": claims.Username, "role": role}, claims.Username)
 	defer func() {
 		hub.Broadcast(code, "member_offline", map[string]string{"user_id": claims.Username}, claims.Username)
 		hub.RemoveClient(code, client)
