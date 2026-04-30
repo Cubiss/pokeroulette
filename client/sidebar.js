@@ -342,7 +342,6 @@ function handleDrop(targetList, data, insertBeforeId) {
     return;
   }
 
-  state.animateNextRender = true;
   movePokemon(p, targetList);
   buildWheel();
 }
