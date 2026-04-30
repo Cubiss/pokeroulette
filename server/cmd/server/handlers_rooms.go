@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cubiss/pokeroulette-server/internal/db"
+	"git.cubiss.cz/Cubiss/pokeroulette/server/internal/db"
 )
 
 var roomCodeRe = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`)

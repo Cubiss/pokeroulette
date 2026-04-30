@@ -8,9 +8,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cubiss/pokeroulette-server/internal/auth"
-	"github.com/cubiss/pokeroulette-server/internal/db"
-	"github.com/cubiss/pokeroulette-server/internal/rooms"
+	"git.cubiss.cz/Cubiss/pokeroulette/server/internal/auth"
+	"git.cubiss.cz/Cubiss/pokeroulette/server/internal/db"
+	"git.cubiss.cz/Cubiss/pokeroulette/server/internal/rooms"
 )
 
 var (
@@ -61,15 +61,17 @@ func main() {
 	mux.HandleFunc("PUT /api/v1/rooms/{code}/members/{username}/role", requireAuth(handleAssignRole))
 	mux.HandleFunc("GET /api/v1/rooms/{code}/events", handleSSE)
 
-	// API docs
-	mux.HandleFunc("GET /api/v1/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/yaml")
-		w.Write(openapiSpec)
-	})
-	mux.HandleFunc("GET /docs", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Write(swaggerUI)
-	})
+	// API docs (opt-in via ENABLE_DOCS=true)
+	if os.Getenv("ENABLE_DOCS") == "true" {
+		mux.HandleFunc("GET /api/v1/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/yaml")
+			w.Write(openapiSpec)
+		})
+		mux.HandleFunc("GET /docs", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.Write(swaggerUI)
+		})
+	}
 
 	// Static client files
 	clientDir := envOr("CLIENT_DIR", "../client")

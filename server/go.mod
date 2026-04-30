@@ -1,4 +1,4 @@
-module github.com/cubiss/pokeroulette-server
+module git.cubiss.cz/Cubiss/pokeroulette/server
 
 go 1.22
 

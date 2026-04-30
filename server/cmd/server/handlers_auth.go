@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cubiss/pokeroulette-server/internal/auth"
-	"github.com/cubiss/pokeroulette-server/internal/db"
+	"git.cubiss.cz/Cubiss/pokeroulette/server/internal/auth"
+	"git.cubiss.cz/Cubiss/pokeroulette/server/internal/db"
 	"golang.org/x/crypto/bcrypt"
 )
 

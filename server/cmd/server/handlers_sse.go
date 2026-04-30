@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cubiss/pokeroulette-server/internal/rooms"
+	"git.cubiss.cz/Cubiss/pokeroulette/server/internal/rooms"
 )
 
 func handleSSE(w http.ResponseWriter, r *http.Request) {
