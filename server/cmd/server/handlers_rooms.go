@@ -91,19 +91,7 @@ func handleLeaveRoom(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusNotFound, "not a member of this room")
 		return
 	}
-	if role == "host" {
-		count, _ := database.MemberCount(roomID)
-		if count > 1 {
-			jsonError(w, http.StatusForbidden, "Transfer host role before leaving")
-			return
-		}
-		hub.CloseRoom(code)
-		database.DeleteRoom(code)
-		w.WriteHeader(http.StatusNoContent)
-		return
-	}
-	database.RemoveMember(roomID, claims.UserID)
-	hub.Broadcast(code, "member_left", map[string]string{"user_id": claims.Username}, "")
+	hub.Broadcast(code, "member_left", map[string]string{"user_id": claims.Username}, claims.Username)
 	w.WriteHeader(http.StatusNoContent)
 }
 

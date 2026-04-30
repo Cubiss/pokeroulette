@@ -277,16 +277,6 @@ func (d *DB) SetMemberRole(roomID int64, username, role string) error {
 	return err
 }
 
-func (d *DB) RemoveMember(roomID, userID int64) error {
-	_, err := d.Exec(`DELETE FROM room_members WHERE room_id = ? AND user_id = ?`, roomID, userID)
-	return err
-}
-
-func (d *DB) MemberCount(roomID int64) (int, error) {
-	var count int
-	err := d.QueryRow(`SELECT COUNT(*) FROM room_members WHERE room_id = ?`, roomID).Scan(&count)
-	return count, err
-}
 
 func (d *DB) DeleteRoom(code string) error {
 	_, err := d.Exec(`DELETE FROM rooms WHERE code = ?`, code)
