@@ -539,7 +539,7 @@ body {
 .online-section-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-dim); }
 .online-tabs { display: flex; gap: 4px; margin-bottom: 4px; }
 .online-tab { flex: 1; padding: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--text-dim); cursor: pointer; font-size: 0.8rem; }
-.online-tab.active { background: rgba(255,255,255,0.12); color: var(--text); }
+.online-tab.active { background: rgba(255,255,255,0.12); color: var(--text); font-weight: bold; }
 .online-field { display: flex; flex-direction: column; gap: 4px; }
 .online-label { font-size: 0.75rem; color: var(--text-dim); }
 .online-input { width: 100%; padding: 6px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 0.85rem; }

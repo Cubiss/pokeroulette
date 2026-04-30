@@ -219,6 +219,10 @@ function renderAuthSection() {
     const btnLabel = activeSubtab === 'signin' ? 'Sign In' : 'Register';
     const submitBtn = el('button', 'online-btn online-btn-primary', btnLabel);
 
+    const onEnter = (e) => { if (e.key === 'Enter') submitBtn.click(); };
+    passInput.addEventListener('keydown', onEnter);
+    if (confirmInput) confirmInput.addEventListener('keydown', onEnter);
+
     submitBtn.addEventListener('click', async () => {
       errDiv.textContent = '';
       const u = userInput.value.trim();
