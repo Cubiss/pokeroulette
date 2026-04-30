@@ -169,6 +169,7 @@ export function buildConfigPanel() {
 
 export function switchTab(name) {
   state.currentTab = name;
+  sessionStorage.setItem('activeTab', name);
   document.getElementById('view-lists').style.display  = name === 'lists'  ? 'flex' : 'none';
   document.getElementById('view-config').style.display = name === 'config' ? 'flex' : 'none';
   document.getElementById('view-online').style.display = name === 'online' ? 'flex' : 'none';

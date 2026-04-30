@@ -1,6 +1,6 @@
 services:
   pokeroulette-api:
-    build: .
+    image: git.cubiss.cz/cubiss/pokeroulette:latest
     environment:
       JWT_SECRET: "change-me-to-a-random-secret-at-least-32-chars"
       ALLOWED_ORIGINS: "*"

@@ -157,6 +157,8 @@ function bindEvents() {
   document.getElementById('tab-config').addEventListener('click', () => switchTab('config'));
   document.getElementById('tab-online').addEventListener('click', () => switchTab('online'));
 
+  switchTab(sessionStorage.getItem('activeTab') ?? 'online');
+
   window.addEventListener('beforeunload', () => closeSSE());
 
   for (const key of ['name', 'sprite', 'types', 'gen', 'dex']) {
